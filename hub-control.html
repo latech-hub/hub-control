@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hub Control — La Tech Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:#F8F8F6;color:#0A0A0B;font-family:'Outfit',sans-serif;min-height:100vh;overflow-x:hidden;}
+button,input,select,textarea{font-family:inherit;}
+.hidden{display:none!important;}
+#app{max-width:920px;margin:0 auto;padding:22px 16px;overflow-x:hidden;}
+.hdr{display:flex;align-items:center;gap:14px;margin-bottom:24px;padding-bottom:18px;border-bottom:2.5px solid #0A0A0B;}
+.logo{font-family:'Fraunces',serif;font-size:21px;font-weight:900;letter-spacing:-0.02em;}
+.logo span{color:#0057FF;}
+.hdr-sub{font-size:12px;color:#666;margin-top:1px;font-weight:500;}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.hdr-date{font-size:12px;color:#555;font-weight:600;text-align:right;}
+.hdr-btn{background:white;border:2px solid #0A0A0B;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:700;color:#0A0A0B;cursor:pointer;box-shadow:2px 2px 0 #0A0A0B;transition:all .15s;}
+.hdr-btn:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 #0A0A0B;}
+.tabs{display:flex;gap:3px;border-bottom:2.5px solid #0A0A0B;margin-bottom:22px;overflow-x:auto;}
+.tab{background:transparent;border:none;border-bottom:3px solid transparent;padding:10px 15px;font-size:14px;font-weight:700;color:#888;cursor:pointer;margin-bottom:-2.5px;white-space:nowrap;transition:all .15s;}
+.tab:hover{color:#0A0A0B;}
+.tab.active{color:#0057FF;border-bottom-color:#0057FF;}
+.tab.active.tw{color:#2D5A00;border-bottom-color:#C8FF00;}
+.tab.active.tf-tab{color:#C0007A;border-bottom-color:#C0007A;}
+.tbadge{display:inline-block;border-radius:20px;font-size:10px;font-weight:800;padding:1px 7px;margin-left:4px;}
+.tb-red{background:#E63946;color:#fff;}
+.tb-pink{background:#C0007A;color:#fff;}
+.panel{display:none;}
+.panel.active{display:block;animation:up .2s ease;}
+@keyframes up{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.ctx{background:#0A0A0B;color:#F8F8F6;border-radius:10px;padding:11px 18px;margin-bottom:20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.ctx-title{font-size:14px;font-weight:800;}
+.ctx-sub{font-size:12px;color:#AAA;margin-left:4px;}
+.ctx-pill{border-radius:20px;padding:4px 12px;font-size:12px;font-weight:800;margin-left:auto;white-space:nowrap;}
+.cp-lime{background:#C8FF00;color:#1a3a00;}.cp-blue{background:#0057FF;color:#fff;}.cp-amber{background:#F59E0B;color:#0A0A0B;}.cp-white{background:#F0EEE8;color:#0A0A0B;}.cp-pink{background:#C0007A;color:#fff;}
+.card{background:white;border:2px solid #0A0A0B;border-radius:14px;padding:22px 24px;margin-bottom:16px;box-shadow:3px 3px 0 #0A0A0B;}
+.card-lite{background:white;border:1.5px solid #DDD;border-radius:12px;padding:16px 20px;margin-bottom:12px;}
+.kpi-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;}
+.kpi{background:white;border:2px solid #0A0A0B;border-radius:14px;padding:16px 20px;flex:1;min-width:110px;box-shadow:3px 3px 0 #0A0A0B;}
+.kn{font-family:'Fraunces',serif;font-size:44px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums;}
+.kl{font-size:13px;font-weight:700;margin-top:5px;}.ks{font-size:12px;color:#777;margin-top:2px;}
+.st{font-family:'Fraunces',serif;font-size:19px;font-weight:700;letter-spacing:-0.01em;margin-bottom:14px;}
+.sl{font-size:11px;color:#777;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;}
+/* ── Carrier grid exterior ── */
+.carrier-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+.carrier-grid>*{min-width:0;overflow:hidden;}
+.ccard{background:white;border:2px solid #0A0A0B;border-radius:12px;padding:16px 18px;box-shadow:2px 2px 0 #0A0A0B;min-width:0;overflow:hidden;}
+.ccard-name{font-size:15px;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.ccard-nums{display:flex;gap:14px;}
+.cn{text-align:center;}.cn-val{font-family:'Fraunces',serif;font-size:30px;font-weight:900;font-variant-numeric:tabular-nums;}
+.cn-lbl{font-size:11px;color:#777;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
+.cb{border-radius:5px;padding:3px 9px;font-size:12px;font-weight:800;letter-spacing:.04em;flex-shrink:0;}
+.ml{background:#FFE600;color:#1a1a1a;}.be{background:#0057FF;color:#fff;}.fa{background:#7B2D8B;color:#fff;}.pi{background:#00BFA5;color:#fff;}
+/* ── Recepción: inner Drop Off / Pick Up sections ── */
+.recv-card{background:white;border:2px solid #0A0A0B;border-radius:14px;padding:16px 18px;box-shadow:3px 3px 0 #0A0A0B;min-width:0;overflow:hidden;}
+.recv-inner{display:grid;grid-template-columns:1fr 1fr;gap:10px;min-width:0;overflow:hidden;}
+.recv-sec{min-width:0;overflow:hidden;border-radius:10px;padding:12px 10px;}
+.recv-do{background:#EFF5FF;border:2px solid #0057FF;}
+.recv-pu{background:#E6FFFB;border:2px solid #00BFA5;}
+.recv-na{background:#F5F5F5;border:2px dashed #CCC;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px 10px;gap:6px;}
+.recv-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;display:flex;align-items:center;gap:5px;}
+.recv-label.do{color:#0057FF;}.recv-label.pu{color:#00BFA5;}
+.recv-total{font-family:'Fraunces',serif;font-size:42px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums;text-align:center;margin-bottom:10px;}
+.recv-total.do{color:#0057FF;}.recv-total.pu{color:#00BFA5;}.recv-total.zero{color:#CCC;}
+/* ── Stepper compacto para secciones recv ── */
+.recv-step{display:flex;align-items:center;border:2px solid #DDD;border-radius:8px;overflow:hidden;background:white;margin-bottom:8px;min-width:0;}
+.recv-step-btn{width:34px;height:40px;background:#F0EEE8;border:none;font-size:18px;font-weight:700;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:background .15s;}
+.recv-step-btn:hover{background:#E0DED8;}.recv-step-btn:active{background:#C8FF00;}
+.recv-step-val{flex:1;text-align:center;font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:#0A0A0B;border:none;outline:none;background:transparent;font-variant-numeric:tabular-nums;min-width:0;width:100%;padding:4px 2px;}
+.recv-btn{border-radius:7px;padding:8px 10px;font-size:13px;font-weight:700;border:2px solid;cursor:pointer;width:100%;transition:all .15s;}
+.recv-btn-do{background:#0057FF;border-color:#0057FF;color:#fff;}
+.recv-btn-do:hover{background:#0046CC;}
+.recv-btn-pu{background:#00BFA5;border-color:#00BFA5;color:#fff;}
+.recv-btn-pu:hover{background:#009E88;}
+/* ── Resto de clases originales ── */
+.will-wrap{background:#EFFFCE;border:2px solid #0A0A0B;border-radius:16px;overflow:hidden;margin-bottom:24px;box-shadow:4px 4px 0 #0A0A0B;}
+.will-top{background:#C8FF00;border-bottom:2px solid #0A0A0B;padding:16px 22px;display:flex;align-items:center;gap:16px;}
+.will-name{font-family:'Fraunces',serif;font-size:20px;font-weight:900;letter-spacing:-.01em;}
+.will-sub{font-size:12px;color:#3a5200;font-weight:600;margin-top:2px;}
+.will-pct{font-family:'Fraunces',serif;font-size:58px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums;margin-left:auto;}
+.will-body{padding:18px 22px;}
+.will-msg{border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:15px;font-weight:800;border:2px solid;}
+.will-kpis{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:18px;}
+.wk{flex:1;min-width:70px;background:white;border:2px solid #0A0A0B;border-radius:10px;padding:11px 8px;text-align:center;box-shadow:2px 2px 0 #0A0A0B;}
+.wkv{font-family:'Fraunces',serif;font-size:28px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1;}
+.wkl{font-size:10px;color:#666;text-transform:uppercase;font-weight:700;letter-spacing:.07em;margin-top:4px;}
+.prog{height:12px;background:#DDD;border-radius:6px;overflow:hidden;border:1.5px solid #CCC;margin-bottom:5px;}
+.prog-fill{height:100%;border-radius:6px;transition:width .5s ease;}
+.prog-labels{display:flex;justify-content:space-between;font-size:12px;color:#666;font-weight:600;}
+.trend-wrap{height:86px;}
+.hist-row{background:white;border:1.5px solid #DDD;border-radius:10px;padding:11px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;}
+.hd{font-size:13px;color:#666;min-width:56px;font-weight:600;}.hp{font-family:'Fraunces',serif;font-size:13px;font-weight:700;min-width:50px;}
+.hbar{flex:1;height:8px;background:#EEE;border-radius:4px;overflow:hidden;border:1px solid #DDD;}
+.hfill{height:100%;border-radius:4px;}
+.hpct{font-family:'Fraunces',serif;font-size:17px;font-weight:900;min-width:44px;text-align:right;}
+.lbl{font-size:12px;color:#333;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;}
+.inp{background:white;border:2px solid #CCC;border-radius:9px;padding:10px 14px;color:#0A0A0B;font-size:15px;width:100%;outline:none;transition:border-color .15s;}
+.inp:focus{border-color:#0057FF;}
+.stepper{display:flex;align-items:center;border:2px solid #0A0A0B;border-radius:10px;overflow:hidden;background:white;box-shadow:2px 2px 0 #0A0A0B;width:100%;min-width:0;}
+.step-btn{width:52px;height:52px;background:#F0EEE8;border:none;font-size:26px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;flex-shrink:0;}
+.step-btn:hover{background:#E0DED8;}.step-btn:active{background:#C8FF00;}
+.step-val{flex:1;text-align:center;font-family:'Fraunces',serif;font-size:36px;font-weight:900;color:#0A0A0B;border:none;outline:none;background:transparent;font-variant-numeric:tabular-nums;min-width:0;width:100%;}
+.btn{border-radius:9px;padding:11px 20px;font-size:14px;font-weight:700;border:2px solid;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.btn-sm{padding:7px 14px;font-size:13px;border-radius:7px;}
+.btn-blue{background:#0057FF;border-color:#0057FF;color:#fff;box-shadow:2px 2px 0 #003DB8;}
+.btn-blue:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 #003DB8;}
+.btn-green{background:#22C55E;border-color:#16A34A;color:#fff;box-shadow:2px 2px 0 #15803D;}
+.btn-green:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 #15803D;}
+.btn-amber{background:#F59E0B;border-color:#D97706;color:#fff;box-shadow:2px 2px 0 #B45309;}
+.btn-red-out{background:white;border-color:#E63946;color:#E63946;}
+.btn-red-out:hover{background:#FEE2E2;}
+.btn-lime{background:#C8FF00;border-color:#0A0A0B;color:#0A0A0B;box-shadow:2px 2px 0 #0A0A0B;}
+.btn-lime:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 #0A0A0B;}
+.btn-dark{background:#0A0A0B;border-color:#0A0A0B;color:#F8F8F6;box-shadow:2px 2px 0 #444;}
+.btn-dark:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 #444;}
+.btn-muted{background:white;border-color:#CCC;color:#555;}
+.btn-muted:hover{border-color:#888;color:#0A0A0B;}
+.btn-purple{background:#8B5CF6;border-color:#7C3AED;color:#fff;box-shadow:2px 2px 0 #6D28D9;}
+.btn-purple:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 #6D28D9;}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+.period-bar{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;}
+.pchip{background:white;border:2px solid #CCC;border-radius:20px;padding:6px 15px;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;color:#666;}
+.pchip.active{background:#0A0A0B;border-color:#0A0A0B;color:#F8F8F6;}
+.tbl{width:100%;border-collapse:collapse;font-size:14px;}
+.tbl th{text-align:left;padding:10px 12px;color:#555;font-weight:700;border-bottom:2px solid #0A0A0B;font-size:11px;text-transform:uppercase;letter-spacing:.08em;}
+.tbl td{padding:11px 12px;border-bottom:1px solid #EEE;}
+.tbl tr:hover td{background:#FAFAF8;}
+.alert{background:#FFF0F0;border:2px solid #E63946;border-radius:12px;padding:16px 20px;margin-bottom:18px;}
+.alert-t{font-family:'Fraunces',serif;font-size:17px;font-weight:700;color:#C0000A;margin-bottom:10px;}
+.colecta-box{background:#F5F0FF;border:2px solid #8B5CF6;border-radius:12px;padding:20px 22px;margin-bottom:16px;}
+.empty{background:white;border:2px dashed #CCC;border-radius:12px;padding:32px;text-align:center;color:#888;font-size:15px;margin-bottom:14px;}
+#toast{position:fixed;bottom:22px;right:22px;background:#0A0A0B;color:white;border-radius:10px;padding:13px 20px;font-size:14px;font-weight:700;z-index:999;opacity:0;transform:translateY(8px);transition:all .25s;pointer-events:none;border-left:4px solid #0057FF;}
+#toast.show{opacity:1;transform:translateY(0);}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:1000;padding:16px;}
+.modal{background:#F8F8F6;border:2px solid #0A0A0B;border-radius:16px;padding:28px;max-width:460px;width:100%;box-shadow:6px 6px 0 #0A0A0B;max-height:90vh;overflow-y:auto;}
+.retry-track{display:flex;gap:6px;margin:4px 0;}
+.rt-dot{width:32px;height:10px;border-radius:4px;}
+.remito-tbl{width:100%;border-collapse:collapse;font-size:14px;}
+.remito-tbl th{padding:9px 12px;text-align:left;color:#555;font-weight:700;border-bottom:2px solid #0A0A0B;font-size:11px;text-transform:uppercase;letter-spacing:.07em;}
+.remito-tbl td{padding:11px 12px;border-bottom:1px solid #EEE;}
+.sign-row{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:26px;}
+.sign-box{border-top:2px solid #0A0A0B;padding-top:12px;}
+.subtabs{display:flex;gap:4px;border-bottom:2px solid #DDD;margin-bottom:20px;overflow-x:auto;}
+.subtab{background:transparent;border:none;border-bottom:3px solid transparent;padding:10px 17px;font-size:14px;font-weight:700;color:#888;cursor:pointer;margin-bottom:-2px;white-space:nowrap;transition:all .15s;}
+.subtab:hover{color:#0A0A0B;}
+.subtab.active{color:#C0007A;border-bottom-color:#C0007A;}
+.svc-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;}
+.svc-card{background:white;border:2.5px solid #DDD;border-radius:14px;padding:22px 18px;cursor:pointer;transition:all .15s;text-align:left;}
+.svc-sel-t{border-color:#0057FF!important;background:#EFF5FF!important;box-shadow:3px 3px 0 #0057FF!important;}
+.svc-sel-f{border-color:#8B5CF6!important;background:#F5F0FF!important;box-shadow:3px 3px 0 #8B5CF6!important;}
+.scan-wrap{position:relative;margin-bottom:8px;}
+.scan-inp{background:white;border:3px solid #0057FF;border-radius:10px;padding:13px 50px 13px 16px;font-family:'Fraunces',serif;font-size:24px;font-weight:700;width:100%;outline:none;color:#0A0A0B;}
+.scan-ico{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:22px;color:#0057FF;pointer-events:none;}
+.pkg-chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;}
+.pkg-chip{background:#F0EEE8;border:2px solid #0A0A0B;border-radius:20px;padding:5px 12px;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:7px;}
+.pkg-del{background:none;border:none;color:#E63946;cursor:pointer;font-size:14px;padding:0;line-height:1;}
+.ord-card{background:white;border:2px solid #DDD;border-left:4px solid #0057FF;border-radius:12px;padding:17px 19px;margin-bottom:10px;}
+.ord-fo{border-left-color:#8B5CF6;}
+.spill{border-radius:20px;padding:3px 11px;font-size:12px;font-weight:800;}
+.oprog{display:flex;gap:3px;margin:10px 0;}
+.oseg{flex:1;height:4px;border-radius:2px;}
+.bil-tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.bil-tbl th{padding:10px 12px;text-align:left;color:#555;font-weight:700;border-bottom:2px solid #0A0A0B;font-size:11px;text-transform:uppercase;letter-spacing:.07em;white-space:nowrap;}
+.bil-tbl td{padding:11px 12px;border-bottom:1px solid #EEE;vertical-align:middle;}
+.bil-tbl tfoot td{background:#F0EEE8;border-top:2px solid #0A0A0B;font-weight:700;}
+.cl-row{background:white;border:2px solid #DDD;border-radius:10px;padding:15px 18px;margin-bottom:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.pay-sel{border:2px solid #DDD;border-radius:7px;padding:6px 9px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;outline:none;}
+.wk-nav{display:flex;align-items:center;gap:12px;background:white;border:2px solid #0A0A0B;border-radius:12px;padding:13px 19px;margin-bottom:20px;box-shadow:2px 2px 0 #0A0A0B;}
+.sumbox{background:#F0EEE8;border:2px solid #0A0A0B;border-radius:12px;padding:17px 20px;margin-bottom:16px;}
+.sumrow{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:15px;}
+.infonote{border-radius:10px;padding:14px 18px;margin-bottom:10px;font-size:14px;line-height:1.7;}
+@media(max-width:680px){
+  .carrier-grid{grid-template-columns:1fr;}
+  .recv-inner{grid-template-columns:1fr 1fr;} /* mantener side by side en mobile */
+  .kpi{min-width:calc(50% - 8px);}
+  .kn{font-size:36px;}
+  .will-pct{font-size:44px;}
+  .wk{min-width:64px;}
+  .svc-grid{grid-template-columns:1fr 1fr;}
+  .recv-total{font-size:34px;}
+}
+@media(max-width:440px){
+  .recv-inner{grid-template-columns:1fr;} /* apilar en pantallas muy pequeñas */
+}
+@media print{.no-print{display:none!important;}body{background:white;}.card,.kpi,.ccard,.will-wrap{box-shadow:none!important;}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="hdr no-print">
+    <div><div class="logo">LA TECH <span>HUB</span></div><div class="hdr-sub">Centro de Envíos · Las Condes, Santiago</div></div>
+    <div class="hdr-right"><div class="hdr-date" id="hdr-date"></div><button class="hdr-btn" onclick="openSync()">🔄 Sync</button></div>
+  </div>
+  <div class="tabs no-print">
+    <button class="tab active" data-tab="dashboard" onclick="st('dashboard')">📊 Dashboard</button>
+    <button class="tab" data-tab="conteo" onclick="st('conteo')">📦 Recepción</button>
+    <button class="tab tw" data-tab="will" onclick="st('will')">🚲 Will / Saca<span class="tbadge tb-red hidden" id="badge-will">!</span></button>
+    <button class="tab" data-tab="colecta" onclick="st('colecta')">🚛 Colecta<span class="tbadge tb-red hidden" id="badge-col"></span></button>
+    <button class="tab tf-tab" data-tab="tf" onclick="st('tf')">⚡ Turbo &amp; Flex<span class="tbadge tb-pink hidden" id="badge-tf"></span></button>
+    <button class="tab" data-tab="reporte" onclick="st('reporte')">📈 Reportes</button>
+  </div>
+  <div class="panel active" id="panel-dashboard"></div>
+  <div class="panel" id="panel-conteo"></div>
+  <div class="panel" id="panel-will"></div>
+  <div class="panel" id="panel-colecta"></div>
+  <div class="panel" id="panel-tf"></div>
+  <div class="panel" id="panel-reporte"></div>
+</div>
+<div id="toast"></div>
+<div class="modal-bg hidden" id="sync-modal">
+  <div class="modal">
+    <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:700;margin-bottom:8px;">🔄 Sincronizar entre PCs</div>
+    <div style="font-size:14px;color:#555;margin-bottom:20px;line-height:1.6;">El PC del mesón es la fuente. Exporta e importa entre equipos.</div>
+    <div class="lbl" style="margin-bottom:6px;">Exportar desde esta PC</div>
+    <button class="btn btn-dark" style="width:100%;margin-bottom:18px;" onclick="doExport()">📋 Copiar código</button>
+    <div class="lbl" style="margin-bottom:6px;">Importar desde otra PC</div>
+    <textarea class="inp" id="sync-txt" rows="4" placeholder="Pega el código aquí..." style="margin-bottom:10px;font-size:13px;font-family:monospace;resize:vertical;"></textarea>
+    <button class="btn btn-green" style="width:100%;margin-bottom:14px;" onclick="doImport()">📥 Importar datos</button>
+    <button class="btn btn-muted" onclick="closeSync()">Cerrar</button>
+  </div>
+</div>
+<script>
+// ── CARRIERS: hasDropOff / hasPickUp por transportista ──
+const CARRIERS={
+  ml:{name:"Mercado Libre",short:"ML",cls:"ml",color:"#E6A800",hasDropOff:true,hasPickUp:true},
+  be:{name:"Blue Express",short:"BE",cls:"be",color:"#0057FF",hasDropOff:true,hasPickUp:true},
+  fa:{name:"Falabella",short:"FA",cls:"fa",color:"#7B2D8B",hasDropOff:true,hasPickUp:true},
+  pi:{name:"Pick It",short:"PI",cls:"pi",color:"#00BFA5",hasDropOff:false,hasPickUp:true}
+};
+const C={blue:"#0057FF",green:"#22C55E",amber:"#F59E0B",red:"#E63946",purple:"#8B5CF6",lime:"#C8FF00",pink:"#C0007A",ink:"#0A0A0B",muted:"#888",limeD:"#2D5A00",teal:"#00BFA5"};
+const SK="latech-hub-v4";
+let state={conteos:[],colectas:[],sacas:[],hubClients:[],hubOrders:[],hubPayments:{}};
+const todayStr=()=>new Intl.DateTimeFormat("en-CA",{timeZone:"America/Santiago"}).format(new Date());
+const genId=()=>"id_"+Date.now()+"_"+Math.random().toString(36).slice(2,5);
+const parseD=d=>{const[y,m,day]=d.split("-");return new Date(+y,+m-1,+day);};
+const fmtD=d=>parseD(d).toLocaleDateString("es-CL",{day:"2-digit",month:"short"});
+const fmtDL=d=>parseD(d).toLocaleDateString("es-CL",{day:"2-digit",month:"long",year:"numeric"});
+const dateRange=n=>Array.from({length:n},(_,i)=>{const d=new Date();d.setDate(d.getDate()-(n-1-i));return new Intl.DateTimeFormat("en-CA",{timeZone:"America/Santiago"}).format(d);});
+const sum=(arr,fn)=>arr.reduce((a,b)=>a+(fn(b)||0),0);
+const cb=c=>`<span class="cb ${CARRIERS[c]?.cls||""}">${CARRIERS[c]?.short||c}</span>`;
+const fmtCLP=n=>"$"+Number(Math.round(n)).toLocaleString("es-CL");
+const fmtTS=ts=>new Date(ts).toLocaleString("es-CL",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+// Obtener tipo de conteo (backward compat: sin type = dropoff)
+const cType=c=>c.type||"dropoff";
+function load(){try{const s=localStorage.getItem(SK);if(s)state=JSON.parse(s);}catch(e){}state.conteos=state.conteos||[];state.colectas=state.colectas||[];state.sacas=state.sacas||[];state.hubClients=state.hubClients||[];state.hubOrders=state.hubOrders||[];state.hubPayments=state.hubPayments||{};}
+function save(){try{localStorage.setItem(SK,JSON.stringify(state));}catch(e){}}
+let toastTimer;
+function toast(msg,color=C.blue){const t=document.getElementById("toast");t.textContent=msg;t.style.borderLeftColor=color;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),3000);}
+function st(id){document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));document.querySelector(`[data-tab="${id}"]`).classList.add("active");document.getElementById("panel-"+id).classList.add("active");renderAll();}
+function openSync(){document.getElementById("sync-modal").classList.remove("hidden");}
+function closeSync(){document.getElementById("sync-modal").classList.add("hidden");}
+function doExport(){const b64=btoa(unescape(encodeURIComponent(JSON.stringify(state))));navigator.clipboard.writeText(b64).then(()=>toast("📋 Código copiado")).catch(()=>{document.getElementById("sync-txt").value=b64;toast("Cópialo del campo",C.amber);});}
+function doImport(){const raw=document.getElementById("sync-txt").value.trim();if(!raw){toast("Pega el código primero",C.amber);return;}try{state=JSON.parse(decodeURIComponent(escape(atob(raw))));state.conteos=state.conteos||[];state.colectas=state.colectas||[];state.sacas=state.sacas||[];state.hubClients=state.hubClients||[];state.hubOrders=state.hubOrders||[];state.hubPayments=state.hubPayments||{};save();closeSync();renderAll();toast("✅ Datos importados");}catch(e){toast("❌ Código inválido",C.red);}}
+
+// ── Colecta ──
+function confirmarColecta(carrier){const hoy=todayStr();const conteo=state.conteos.find(c=>c.date===hoy&&c.carrier===carrier&&cType(c)==="dropoff");if(!conteo){toast("Primero registra el Drop Off",C.amber);return;}state.colectas.push({id:genId(),date:hoy,carrier,count:conteo.count,retornos:0,ts:new Date().toISOString()});save();toast(`🚛 Colecta ${CARRIERS[carrier].name} confirmada — ${conteo.count} paq`);renderAll();}
+
+// ── Will / Saca ──
+function abrirSaca(assigned){if(!assigned||assigned<1){toast("Ingresa cuántos paquetes lleva Will",C.amber);return;}const hoy=todayStr();if(state.sacas.find(s=>s.date===hoy&&!s.closedAt)){toast("Ya hay una saca abierta hoy.",C.amber);return;}state.sacas.push({id:genId(),date:hoy,assigned,delivered:0,failed:0,retries:[],retryOf:null,retryCount:0,ts:new Date().toISOString()});save();toast(`🚲 Saca abierta — ${assigned} paquetes`);renderAll();}
+function cerrarSaca(sacaId,delivered,failed){state.sacas=state.sacas.map(s=>s.id!==sacaId?s:{...s,delivered,failed,closedAt:new Date().toISOString()});save();toast(`✅ Saca cerrada — ${delivered} entregados, ${failed} fallidos`);renderAll();}
+function reintentarSaca(sacaId){const orig=state.sacas.find(s=>s.id===sacaId);if(!orig||!orig.failed)return;const nr=orig.retryCount+1;if(nr>3){toast("⚠️ Máx 3 reintentos — enviar a Colecta",C.red);return;}state.sacas.push({id:genId(),date:todayStr(),assigned:orig.failed,delivered:0,failed:0,retryOf:sacaId,retryCount:nr,ts:new Date().toISOString()});save();toast(`🔄 Reintento ${nr}/3`);renderAll();}
+function enviarColectaWill(sacaId){state.sacas=state.sacas.map(s=>s.id===sacaId?{...s,toColecta:true,toColectaAt:new Date().toISOString()}:s);save();toast("📋 Enviado a remito",C.purple);renderAll();}
+
+// ── Helpers gráficos ──
+function trendSVG(data,colorFn){const pts=data.filter(d=>d.val!==null);if(pts.length<2)return`<div style="height:86px;display:flex;align-items:center;justify-content:center;color:#888;font-size:13px;">Sin datos suficientes aún...</div>`;const maxV=Math.max(...pts.map(d=>d.val),1),W=400,H=74,PL=4,PR=4,PT=6,PB=6;const xs=data.map((_,i)=>PL+(i/(data.length-1))*(W-PL-PR));const y=v=>PT+(1-(v/maxV))*(H-PT-PB);const pathPts=data.map((d,i)=>d.val!==null?[xs[i],y(d.val)]:null).filter(Boolean);const path="M "+pathPts.map(p=>p.join(",")).join(" L ");const dots=data.map((d,i)=>d.val===null?"":`<circle cx="${xs[i]}" cy="${y(d.val)}" r="4" fill="${colorFn(d.val)}" stroke="#0A0A0B" stroke-width="1.5"/>`).join("");return`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:86px;" preserveAspectRatio="none"><path d="${path}" fill="none" stroke="#0A0A0B" stroke-width="2.5" stroke-linejoin="round"/>${dots}</svg>`;}
+function barChartHTML(data){const max=Math.max(...data.map(d=>d.v),1);return`<div style="display:flex;align-items:flex-end;gap:5px;height:100px;">${data.map(d=>`<div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:3px;"><div style="width:100%;border-radius:4px 4px 0 0;background:${d.color};height:${Math.max(4,Math.round((d.v/max)*90))}px;border:1.5px solid #0A0A0B;"></div><div style="font-size:10px;color:#888;font-weight:600;white-space:nowrap;">${d.label}</div></div>`).join("")}</div>`;}
+
+// ── Datos derivados ──
+function deriveData(){
+  const hoy=todayStr();
+  // Solo dropoff cuenta para colecta
+  const conteoHoy=state.conteos.filter(c=>c.date===hoy&&cType(c)==="dropoff");
+  const conteoHoyPU=state.conteos.filter(c=>c.date===hoy&&cType(c)==="pickup");
+  const colectaHoy=state.colectas.filter(c=>c.date===hoy);
+  const totalConteoHoy=sum(conteoHoy,c=>c.count);
+  const totalPickUpHoy=sum(conteoHoyPU,c=>c.count);
+  const totalColectaHoy=sum(colectaHoy,c=>c.count);
+  const sacaAbierta=state.sacas.find(s=>s.date===hoy&&!s.closedAt);
+  const sacasHoy=state.sacas.filter(s=>s.date===hoy&&s.closedAt);
+  const sacasPendientes=state.sacas.filter(s=>s.closedAt&&s.failed>0&&!s.toColecta&&!state.sacas.find(r=>r.retryOf===s.id));
+  const willTasa=(()=>{const hc=state.sacas.filter(s=>s.date===hoy&&s.closedAt),totA=sum(hc,s=>s.assigned),totE=sum(hc,s=>s.delivered);return totA>0?Math.round((totE/totA)*100):null;})();
+  return{hoy,conteoHoy,conteoHoyPU,colectaHoy,totalConteoHoy,totalPickUpHoy,totalColectaHoy,sacaAbierta,sacasHoy,sacasPendientes,willTasa};
+}
+
+function stepUp(id){const el=document.getElementById(id);el.value=Math.max(0,(parseInt(el.value)||0)+1);}
+function stepDown(id){const el=document.getElementById(id);el.value=Math.max(0,(parseInt(el.value)||0)-1);}
+function recvUp(id){const el=document.getElementById(id);if(el){el.value=Math.max(0,(parseInt(el.value)||0)+1);el.select();}}
+function recvDown(id){const el=document.getElementById(id);if(el){el.value=Math.max(0,(parseInt(el.value)||0)-1);el.select();}}
+function willSync(cId,oId,total){const c=document.getElementById(cId),o=document.getElementById(oId);let v=Math.max(0,Math.min(total,parseInt(c.value)||0));c.value=v;o.value=Math.max(0,total-v);const chk=document.getElementById("will-check");if(chk){const s=v+(parseInt(o.value)||0);chk.textContent=s+" / "+total;chk.style.color=s===total?"#22C55E":"#F59E0B";}}
+function willAdjustUp(id,oId,total){const el=document.getElementById(id);el.value=Math.min(total,(parseInt(el.value)||0)+1);willSync(id,oId,total);}
+function willAdjust(id,oId,total){const el=document.getElementById(id);el.value=Math.max(0,(parseInt(el.value)||0)-1);willSync(id,oId,total);}
+
+function renderAll(){
+  const D=deriveData();
+  document.getElementById("badge-will").classList.toggle("hidden",D.sacasPendientes.length===0);
+  const colPend=Object.keys(CARRIERS).filter(k=>CARRIERS[k].hasDropOff&&D.conteoHoy.find(c=>c.carrier===k)&&!D.colectaHoy.find(c=>c.carrier===k));
+  document.getElementById("badge-col").textContent=colPend.length;
+  document.getElementById("badge-col").classList.toggle("hidden",colPend.length===0);
+  const tfAct=(state.hubOrders||[]).filter(o=>!TF_FINAL.includes(o.status));
+  document.getElementById("badge-tf").textContent=tfAct.length||"";
+  document.getElementById("badge-tf").classList.toggle("hidden",tfAct.length===0);
+  renderDashboard(D);renderConteo(D);renderWill(D);renderColecta(D);renderTF();renderReporte(D);
+}
+
+// ── DASHBOARD ──
+function renderDashboard(D){
+  const{hoy,conteoHoy,colectaHoy,totalConteoHoy,totalPickUpHoy,totalColectaHoy,sacaAbierta,willTasa}=D;
+  const willDays=dateRange(14).map(d=>{const closed=state.sacas.filter(s=>s.date===d&&s.closedAt),totA=sum(closed,s=>s.assigned),totE=sum(closed,s=>s.delivered);return{day:fmtD(d),val:totA>0?Math.round((totE/totA)*100):null};});
+  const withData=willDays.filter(d=>d.val!==null),avg14=withData.length>0?Math.round(sum(withData,d=>d.val)/withData.length):null;
+  let streak=0;for(let i=willDays.length-2;i>=0;i--){if(willDays[i].val===100)streak++;else if(willDays[i].val!==null)break;}
+  const goalColor=willTasa===null?C.muted:willTasa===100?C.limeD:willTasa>=80?C.amber:C.red;
+  const statusBg=willTasa===100?"#E6FFB2":willTasa!==null?"#FFF3CD":"#F5F4F0";
+  const statusBdr=willTasa===100?"#C8FF00":willTasa>=80?C.amber:willTasa!==null?C.red:"#CCC";
+  const willMsg=willTasa===null?"Sin saca registrada hoy":willTasa===100?"🎯 META CUMPLIDA — 100% HOY":sacaAbierta?`Saca en curso — ${sacaAbierta.assigned} paquetes`:`${willTasa}% de entrega hoy`;
+  const dailyChart=dateRange(7).map(d=>({label:fmtD(d),v:sum(state.conteos.filter(c=>c.date===d&&cType(c)==="dropoff"),c=>c.count),color:C.blue}));
+  const tfToday=(state.hubOrders||[]).filter(o=>o.createdAt>=new Date().setHours(0,0,0,0));
+  document.getElementById("panel-dashboard").innerHTML=`
+<div class="ctx"><span style="font-size:16px;">📊</span><div><div class="ctx-title">Dashboard general</div><div class="ctx-sub">Vista consolidada del Hub</div></div><span class="ctx-pill cp-white">Hoy · ${new Date().toLocaleDateString("es-CL",{weekday:"short",day:"numeric",month:"short"})}</span></div>
+<div class="will-wrap"><div class="will-top"><span style="font-size:26px;">🚲</span><div><div class="will-name">Will — Repartidor</div><div class="will-sub">Long John · Polígono Las Condes · Meta: 100%</div></div><div class="will-pct" style="color:${goalColor};">${willTasa!==null?willTasa+"%":"—"}</div></div><div class="will-body"><div class="will-msg" style="background:${statusBg};border-color:${statusBdr};color:${goalColor};">${willMsg}</div><div class="will-kpis">${(()=>{const hc=state.sacas.filter(s=>s.date===hoy&&s.closedAt),totA=sum(hc,s=>s.assigned)||(sacaAbierta?.assigned||0),totE=sum(hc,s=>s.delivered),totF=sum(hc,s=>s.failed);return[["Asignados",totA||"—",C.ink],["Entregados",totE||"—",C.green],["Fallidos",totF||"—",C.red],["Racha 100%",streak>0?streak+"d":"—",C.blue],["Prom 14d",avg14!==null?avg14+"%":"—",C.muted]].map(([l,v,c])=>`<div class="wk"><div class="wkv" style="color:${c};">${v}</div><div class="wkl">${l}</div></div>`).join("");})()}</div><div class="sl">Tendencia 14 días</div><div class="trend-wrap">${trendSVG(willDays,v=>v===100?C.lime:v>=80?C.amber:C.red)}</div><div style="display:flex;justify-content:space-between;margin-top:4px;font-size:11px;color:#888;font-weight:600;"><span>${willDays[0]?.day}</span><span>${willDays[willDays.length-1]?.day}</span></div></div></div>
+<div class="st">Resumen del Hub — hoy</div>
+<div class="kpi-row">
+  <div class="kpi"><div class="kn" style="color:${C.blue};">${totalConteoHoy}</div><div class="kl">Drop Off</div><div class="ks">paq listos para colecta</div></div>
+  <div class="kpi"><div class="kn" style="color:${C.teal};">${totalPickUpHoy}</div><div class="kl">Pick Up</div><div class="ks">clientes retiraron</div></div>
+  <div class="kpi"><div class="kn" style="color:${C.green};">${totalColectaHoy}</div><div class="kl">Salieron colecta</div><div class="ks">confirmados hoy</div></div>
+  <div class="kpi"><div class="kn" style="color:${C.pink};">${tfToday.length}</div><div class="kl">Turbo &amp; Flex</div><div class="ks">órdenes propias</div></div>
+</div>
+<div class="st">Por transportista — hoy</div>
+<div class="carrier-grid">${Object.entries(CARRIERS).map(([k,c])=>{
+  const doCnt=conteoHoy.find(x=>x.carrier===k)?.count||0;
+  const puCnt=D.conteoHoyPU.find(x=>x.carrier===k)?.count||0;
+  const colecta=colectaHoy.find(x=>x.carrier===k)?.count||0;
+  return`<div class="ccard"><div class="ccard-name">${cb(k)}${c.name}</div><div class="ccard-nums">
+    ${c.hasDropOff?`<div class="cn"><div class="cn-val" style="color:${C.blue};">${doCnt}</div><div class="cn-lbl">Drop Off</div></div>`:""}
+    ${c.hasPickUp?`<div class="cn"><div class="cn-val" style="color:${C.teal};">${puCnt}</div><div class="cn-lbl">Pick Up</div></div>`:""}
+    <div class="cn"><div class="cn-val" style="color:${C.green};">${colecta}</div><div class="cn-lbl">Colecta</div></div>
+  </div></div>`;}).join("")}</div>
+<div class="card"><div class="st">Volumen Drop Off — 7 días</div>${barChartHTML(dailyChart)}</div>`;
+}
+
+// ── Construye la barra de selección de fecha (intuitiva) ──
+function buildDateNav(fecha, hoy){
+  const pills=[];
+  for(let i=0;i<5;i++){
+    const d=new Date();d.setDate(d.getDate()-i);
+    const ds=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Santiago"}).format(d);
+    const lbl=i===0?"HOY":i===1?"AYER":"Hace "+i+"d";
+    const sub=d.toLocaleDateString("es-CL",{weekday:"short",day:"numeric",month:"short"});
+    const sel=ds===fecha;
+    const bg=sel?(i===0?"#0057FF":C.amber):"white";
+    const txt=sel?"white":(i===0?"#0057FF":i===1?"#B45309":"#555");
+    const brd=sel?(i===0?"#0057FF":C.amber):"#DDD";
+    const shd=sel?(i===0?"2px 2px 0 #003DB8":"2px 2px 0 #D97706"):"none";
+    pills.push('<button onclick="recepcionSetFecha(\''+ds+'\')" style="flex:1;min-width:68px;padding:10px 6px;border-radius:10px;border:2px solid '+brd+';font-family:inherit;cursor:pointer;transition:all .15s;background:'+bg+';box-shadow:'+shd+';">'
+      +'<div style="font-size:11px;font-weight:800;letter-spacing:.04em;color:'+txt+';">'+lbl+'</div>'
+      +'<div style="font-size:10px;margin-top:2px;color:'+txt+';opacity:0.85;">'+sub+'</div>'
+      +'</button>');
+  }
+  const editAlert=fecha!==hoy?('<div style="background:#FFF3CD;border:2px solid '+C.amber+';border-radius:10px;padding:10px 16px;margin-bottom:16px;font-size:14px;font-weight:700;color:#B45309;">✏️ Editando '+fmtDL(fecha)+' — cambios guardados automáticamente</div>'):"";
+  return '<div style="background:white;border:2px solid #0A0A0B;border-radius:14px;padding:16px 18px;margin-bottom:20px;box-shadow:3px 3px 0 #0A0A0B;">'
+    +'<div style="font-size:11px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;">¿Qué día querés registrar?</div>'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">'+pills.join("")+'</div>'
+    +'<div style="display:flex;align-items:center;gap:10px;border-top:1.5px solid #EEE;padding-top:12px;">'
+    +'<span style="font-size:13px;color:#888;font-weight:700;white-space:nowrap;">Otra fecha:</span>'
+    +'<input type="date" value="'+fecha+'" max="'+hoy+'" style="flex:1;font-family:\'Fraunces\',serif;font-size:15px;font-weight:700;border:2px solid #DDD;border-radius:8px;padding:7px 10px;outline:none;color:#0A0A0B;cursor:pointer;" onchange="recepcionSetFecha(this.value);">'
+    +'</div></div>'+editAlert;
+}
+
+// ── RECEPCIÓN (Conteo) ──
+let recepcionDate=todayStr();
+function recepcionNav(delta){
+  const cur=parseD(recepcionDate);
+  cur.setDate(cur.getDate()+delta);
+  const next=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Santiago"}).format(cur);
+  if(next>todayStr())return;
+  recepcionDate=next;
+  renderAll();
+}
+function recepcionSetFecha(d){if(d&&d<=todayStr()){recepcionDate=d;renderAll();}}
+function recepcionSetToday(){recepcionDate=todayStr();renderAll();}
+function resetConteoFecha(carrier,type){if(!confirm("¿Resetear conteo de "+CARRIERS[carrier].name+" para "+fmtDL(recepcionDate)+"?"))return;state.conteos=state.conteos.filter(c=>!(c.date===recepcionDate&&c.carrier===carrier&&cType(c)===type));save();toast("↺ Reseteado",C.amber);renderAll();}
+
+function renderConteo(D){
+  const hoy=todayStr();
+  const fecha=recepcionDate;
+  const esHoy=fecha===hoy;
+  const conteoHoy=state.conteos.filter(c=>c.date===fecha&&cType(c)==="dropoff");
+  const conteoHoyPU=state.conteos.filter(c=>c.date===fecha&&cType(c)==="pickup");
+  const colectaHoy=state.colectas.filter(c=>c.date===fecha);
+  const carrierKeys=Object.keys(CARRIERS);
+  const histDays=dateRange(6).slice(0,5).map(d=>({date:d,total:sum(state.conteos.filter(c=>c.date===d&&cType(c)==="dropoff"),c=>c.count)})).filter(d=>d.total>0);
+
+  const cardsHTML=carrierKeys.map(k=>{
+    const c=CARRIERS[k];
+    const doCnt=conteoHoy.find(x=>x.carrier===k)?.count||0;
+    const puCnt=conteoHoyPU.find(x=>x.carrier===k)?.count||0;
+    const doColectada=!!colectaHoy.find(x=>x.carrier===k);
+
+    // Construir secciones con if/else para evitar template literals anidados
+    let doSection, puSection;
+
+    if(c.hasDropOff){
+      const doZero=doCnt===0?"zero":"";
+      const doStatusTxt=doCnt>0?(doColectada?"✓ En colecta":doCnt+" acumulados"):"";
+      const doStatus=doCnt>0?('<div style="font-size:11px;color:'+(doColectada?C.green:C.blue)+';margin-top:7px;font-weight:700;text-align:center;">'+doStatusTxt+'</div>'):"";
+      const doReset=doCnt>0?('<button style="margin-top:6px;background:none;border:none;font-size:11px;color:#E63946;cursor:pointer;font-weight:700;width:100%;text-align:center;" onclick="resetConteoFecha(\''+k+'\',\'dropoff\')">↺ Resetear</button>'):"";
+      doSection='<div class="recv-sec recv-do">'
+        +'<div class="recv-label do">📥 DROP OFF</div>'
+        +'<div class="recv-total do '+doZero+'" id="total-'+k+'-dropoff">'+doCnt+'</div>'
+        +'<div class="recv-step">'
+        +'<button class="recv-step-btn" onclick="recvDown(\'inp-'+k+'-do\')">−</button>'
+        +'<input class="recv-step-val" id="inp-'+k+'-do" type="number" inputmode="numeric" min="0" value="" placeholder="0" onfocus="this.select()" onkeydown="if(event.key===\'Enter\'){agregarConteo(\''+k+'\',\'dropoff\');}">'
+        +'<button class="recv-step-btn" onclick="recvUp(\'inp-'+k+'-do\')">+</button>'
+        +'</div>'
+        +'<button class="recv-btn recv-btn-do" onclick="agregarConteo(\''+k+'\',\'dropoff\')">✚ Agregar</button>'
+        +doStatus+doReset
+        +'</div>';
+    } else {
+      doSection='<div class="recv-sec recv-na"><div style="font-size:28px;margin-bottom:6px;">🚫</div><div style="font-size:11px;color:#888;font-weight:700;line-height:1.4;">Drop Off<br>no aplica</div></div>';
+    }
+
+    if(c.hasPickUp){
+      const puZero=puCnt===0?"zero":"";
+      const puStatus=puCnt>0?('<div style="font-size:11px;color:'+C.teal+';margin-top:7px;font-weight:700;text-align:center;">'+puCnt+' retirados</div>'):"";
+      const puReset=puCnt>0?('<button style="margin-top:6px;background:none;border:none;font-size:11px;color:#E63946;cursor:pointer;font-weight:700;width:100%;text-align:center;" onclick="resetConteoFecha(\''+k+'\',\'pickup\')">↺ Resetear</button>'):"";
+      puSection='<div class="recv-sec recv-pu">'
+        +'<div class="recv-label pu">📤 PICK UP</div>'
+        +'<div class="recv-total pu '+puZero+'" id="total-'+k+'-pickup">'+puCnt+'</div>'
+        +'<div class="recv-step">'
+        +'<button class="recv-step-btn" onclick="recvDown(\'inp-'+k+'-pu\')">−</button>'
+        +'<input class="recv-step-val" id="inp-'+k+'-pu" type="number" inputmode="numeric" min="0" value="" placeholder="0" onfocus="this.select()" onkeydown="if(event.key===\'Enter\'){agregarConteo(\''+k+'\',\'pickup\');}">'
+        +'<button class="recv-step-btn" onclick="recvUp(\'inp-'+k+'-pu\')">+</button>'
+        +'</div>'
+        +'<button class="recv-btn recv-btn-pu" onclick="agregarConteo(\''+k+'\',\'pickup\')">✚ Agregar</button>'
+        +puStatus+puReset
+        +'</div>';
+    } else {
+      puSection='<div class="recv-sec recv-na"><div style="font-size:28px;margin-bottom:6px;">🚫</div><div style="font-size:11px;color:#888;font-weight:700;line-height:1.4;">Pick Up<br>no aplica</div></div>';
+    }
+
+    return`<div class="recv-card">
+      <div class="ccard-name" style="margin-bottom:12px;">${cb(k)}<span style="font-size:15px;font-weight:800;">${c.name}</span></div>
+      <div class="recv-inner">${doSection}${puSection}</div>
+    </div>`;
+  }).join("");
+
+  document.getElementById("panel-conteo").innerHTML=`
+<div class="ctx"><span style="font-size:16px;">📦</span><div><div class="ctx-title">Recepción diaria</div><div class="ctx-sub">📥 Drop Off — sellers traen paquetes &nbsp;·&nbsp; 📤 Pick Up — clientes vienen a retirar</div></div><span class="ctx-pill ${esHoy?"cp-blue":"cp-amber"}">${esHoy?"HOY ·":""} ${fmtD(fecha)}</span></div>
+${buildDateNav(fecha,hoy)}
+<div class="carrier-grid" style="margin-bottom:24px;">${cardsHTML}</div>
+<div class="card"><div class="st">Resumen — ${fmtDL(fecha)}</div>
+${(conteoHoy.length===0&&conteoHoyPU.length===0)?`<div class="empty">Sin registros para esta fecha.</div>`:
+`<table class="tbl"><thead><tr><th>Transportista</th><th>Drop Off</th><th>Pick Up</th><th>Estado colecta</th></tr></thead><tbody>
+${carrierKeys.map(k=>{
+  const doCnt=conteoHoy.find(x=>x.carrier===k)?.count||0;
+  const puCnt=conteoHoyPU.find(x=>x.carrier===k)?.count||0;
+  if(!doCnt&&!puCnt)return"";
+  return`<tr><td>${cb(k)} ${CARRIERS[k].name}</td>
+    <td><strong style="font-family:'Fraunces',serif;font-size:20px;">${doCnt||"—"}</strong></td>
+    <td><strong style="font-family:'Fraunces',serif;font-size:20px;color:${C.teal};">${puCnt||"—"}</strong></td>
+    <td>${colectaHoy.find(x=>x.carrier===k)?`<span style="color:${C.green};font-weight:700;">✓ Colecta confirmada</span>`:doCnt>0?`<span style="color:${C.amber};font-weight:700;">⏳ Esperando colecta</span>`:`<span style="color:#CCC;font-weight:700;">—</span>`}</td>
+  </tr>`;}).join("")}
+<tr style="background:#F8F8F6;border-top:2px solid #0A0A0B;">
+  <td><strong>TOTAL</strong></td>
+  <td><strong style="font-family:'Fraunces',serif;font-size:22px;color:${C.blue};">${sum(conteoHoy,c=>c.count)}</strong></td>
+  <td><strong style="font-family:'Fraunces',serif;font-size:22px;color:${C.teal};">${sum(conteoHoyPU,c=>c.count)}</strong></td>
+  <td></td>
+</tr></tbody></table>`}
+</div>
+${histDays.length>0?`<div class="st">Historial reciente</div>${histDays.reverse().map(d=>`
+<div class="card-lite" style="cursor:pointer;transition:background .12s;" onclick="recepcionDate='${d.date}';renderAll();">
+  <div style="display:flex;justify-content:space-between;align-items:center;">
+    <span style="font-size:13px;color:${'${d.date===fecha?C.blue:"#666"}'};font-weight:700;">${fmtDL(d.date)}${'${d.date===fecha?" ◀":""}'}</span>
+    <span style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:${C.blue};">${d.total} paq</span>
+  </div>
+</div>`).join("")}`:""}`;
+}
+
+// ── Agregar conteo (dropoff o pickup) — usa la fecha activa del panel ──
+function agregarConteo(carrier,type){
+  const inputId="inp-"+carrier+"-"+(type==="dropoff"?"do":"pu");
+  const el=document.getElementById(inputId);
+  if(!el)return;
+  const n=parseInt(el.value)||0;
+  if(n<=0){el.select();return;}
+  const fecha=recepcionDate; // usa fecha activa, no necesariamente hoy
+  const existing=state.conteos.find(c=>c.date===fecha&&c.carrier===carrier&&cType(c)===type);
+  if(existing){existing.count+=n;}else{state.conteos.push({id:genId(),date:fecha,carrier,count:n,type,ts:new Date().toISOString()});}
+  save();
+  const newTotal=state.conteos.find(c=>c.date===fecha&&c.carrier===carrier&&cType(c)===type)?.count||0;
+  const totEl=document.getElementById("total-"+carrier+"-"+type);
+  if(totEl){totEl.textContent=newTotal;totEl.classList.remove("zero");totEl.style.color=type==="dropoff"?C.blue:C.teal;}
+  el.value="";el.focus();el.select();
+  const label=type==="dropoff"?"Drop Off":"Pick Up";
+  const esFecha=fecha===todayStr()?"":(" ("+fmtD(fecha)+")");
+  toast("✚ +"+n+" → "+CARRIERS[carrier].name+" "+label+esFecha+": "+newTotal+" total",type==="dropoff"?C.blue:C.teal);
+  setTimeout(()=>renderAll(),300);
+}
+
+// ── WILL — edición de sacas pasadas ──
+let sacaPasadaDate="";
+let sacaPasadaMode=false; // false=oculto, true=mostrar form
+function toggleSacaPasada(){sacaPasadaMode=!sacaPasadaMode;if(sacaPasadaMode&&!sacaPasadaDate){const y=new Date();y.setDate(y.getDate()-1);sacaPasadaDate=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Santiago"}).format(y);}renderAll();}
+function sacaPasadaSetDate(d){sacaPasadaDate=d;renderAll();}
+function guardarSacaPasada(){
+  const n=parseInt(document.getElementById("sp-asig")?.value)||0;
+  const f=parseInt(document.getElementById("sp-fail")?.value)||0;
+  const e=Math.max(0,n-f); // Entregados = Asignados - Fallidos (automático)
+  if(!sacaPasadaDate){toast("Elige una fecha",C.purple);return;}
+  if(n<1){toast("Ingresa los paquetes asignados",C.purple);return;}
+  if(f>n){toast("Fallidos no puede superar Asignados ("+n+")",C.red);return;}
+  // No permitir si ya hay saca cerrada para esa fecha (preguntar si editar)
+  const existing=state.sacas.find(s=>s.date===sacaPasadaDate&&s.closedAt&&!s.retryOf);
+  if(existing){
+    if(!confirm("Ya existe una saca para "+fmtDL(sacaPasadaDate)+". ¿Reemplazar?"))return;
+    state.sacas=state.sacas.filter(s=>!(s.date===sacaPasadaDate&&s.closedAt&&!s.retryOf));
+  }
+  state.sacas.push({id:genId(),date:sacaPasadaDate,assigned:n,delivered:e,failed:f,retries:[],retryOf:null,retryCount:0,ts:new Date().toISOString(),closedAt:new Date().toISOString(),retroCargado:true});
+  save();sacaPasadaMode=false;toast("✅ Saca de "+fmtDL(sacaPasadaDate)+" guardada",C.green);renderAll();
+}
+
+function renderWill(D){const{hoy,sacaAbierta}=D;const sacasHoyAll=state.sacas.filter(s=>s.date===hoy),sacasCerradas=sacasHoyAll.filter(s=>s.closedAt);const totAsig=sum(sacasHoyAll,s=>s.assigned),totEnt=sum(sacasCerradas,s=>s.delivered),totFail=sum(sacasCerradas,s=>s.failed),pct=totAsig>0?Math.round((totEnt/totAsig)*100):0;const reintentosPend=state.sacas.filter(s=>s.closedAt&&s.failed>0&&!s.toColecta&&!state.sacas.find(r=>r.retryOf===s.id));document.getElementById("panel-will").innerHTML=`<div class="ctx"><span style="font-size:16px;">🚲</span><div><div class="ctx-title">Will — Saca y entregas</div><div class="ctx-sub">Control de la ruta diaria en el polígono Las Condes</div></div><span class="ctx-pill ${sacaAbierta?"cp-amber":"cp-lime"}">${sacaAbierta?"Saca en curso":"Sin saca abierta"} · ${new Date().toLocaleDateString("es-CL",{day:"numeric",month:"short"})}</span></div>${reintentosPend.length>0?`<div class="alert"><div class="alert-t">⚠️ ${reintentosPend.length} saca${reintentosPend.length>1?"s":""} con paquetes fallidos sin resolver</div>${reintentosPend.map(s=>`<div class="card-lite" style="margin-bottom:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;"><div><div style="font-size:13px;color:#666;">Saca del ${fmtD(s.date)} — Reintento ${s.retryCount}/3</div><div style="font-family:'Fraunces',serif;font-size:22px;font-weight:900;color:${C.red};">${s.failed} fallidos</div></div><div class="retry-track">${[1,2,3].map(i=>`<div class="rt-dot" style="background:${i<=s.retryCount?C.red:"#DDD"};"></div>`).join("")}</div><div class="btn-row" style="margin:0;margin-left:auto;">${s.retryCount<3?`<button class="btn btn-amber btn-sm" onclick="reintentarSaca('${s.id}')">🔄 Reintentar</button>`:""}<button class="btn btn-purple btn-sm" onclick="enviarColectaWill('${s.id}')">📋 A Colecta</button></div></div>`).join("")}</div>`:""}${!sacaAbierta?`<div class="card" style="background:#EFFFCE;border-color:#0A0A0B;"><div class="st">🚲 Abrir saca de Will</div><div style="font-size:14px;color:#555;margin-bottom:16px;">¿Cuántos paquetes lleva Will hoy?</div><div class="stepper" style="max-width:260px;margin-bottom:14px;"><button class="step-btn" onclick="stepDown('saca-n')">−</button><input class="step-val" id="saca-n" type="number" inputmode="numeric" min="1" value="0" onfocus="this.select()"><button class="step-btn" onclick="stepUp('saca-n')">+</button></div><button class="btn btn-lime" onclick="abrirSaca(parseInt(document.getElementById('saca-n').value)||0)">Abrir saca de Will</button></div>`:`<div class="card" style="background:#EFFFCE;border-color:#C8FF00;"><div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;"><span style="font-size:26px;">🚲</span><div><div style="font-family:'Fraunces',serif;font-size:18px;font-weight:700;">Saca abierta — en curso</div><div style="font-size:13px;color:#3a5200;font-weight:600;">Will salió con ${sacaAbierta.assigned} paquetes</div></div></div><div style="font-size:14px;color:#555;margin-bottom:16px;">Cuando Will vuelva, registra el resultado:</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;min-width:0;"><div style="min-width:0;overflow:hidden;"><div class="lbl">✓ Entregados</div><div class="stepper"><button class="step-btn" onclick="willAdjust('will-ent','will-fail',${sacaAbierta.assigned})">−</button><input class="step-val" id="will-ent" type="number" inputmode="numeric" min="0" max="${sacaAbierta.assigned}" value="${sacaAbierta.assigned}" onfocus="this.select()" oninput="willSync('will-ent','will-fail',${sacaAbierta.assigned})"><button class="step-btn" onclick="willAdjustUp('will-ent','will-fail',${sacaAbierta.assigned})">+</button></div></div><div style="min-width:0;overflow:hidden;"><div class="lbl">✗ No entregados</div><div class="stepper"><button class="step-btn" onclick="willAdjust('will-fail','will-ent',${sacaAbierta.assigned})">−</button><input class="step-val" id="will-fail" type="number" inputmode="numeric" min="0" max="${sacaAbierta.assigned}" value="0" onfocus="this.select()" oninput="willSync('will-fail','will-ent',${sacaAbierta.assigned})"><button class="step-btn" onclick="willAdjustUp('will-fail','will-ent',${sacaAbierta.assigned})">+</button></div></div></div><div style="font-size:13px;color:#555;margin-bottom:12px;font-weight:600;text-align:center;">Total: <span id="will-check" style="font-weight:800;"></span> de ${sacaAbierta.assigned} paquetes</div><button class="btn btn-dark" onclick="(()=>{const e=parseInt(document.getElementById('will-ent').value)||0;const f=parseInt(document.getElementById('will-fail').value)||0;cerrarSaca('${sacaAbierta.id}',e,f);})()">Cerrar saca</button></div>`}${sacasCerradas.length>0?`<div class="st">Sacas cerradas hoy</div>${totAsig>0?`<div style="margin-bottom:16px;"><div class="prog"><div class="prog-fill" style="width:${pct}%;background:${pct===100?C.lime:C.amber};border:1px solid #0A0A0B;"></div></div><div class="prog-labels"><span>${totEnt} entregados</span><span>${totAsig} asignados</span></div></div>`:""}${sacasCerradas.map(s=>`<div class="card-lite" style="border-left:4px solid ${s.failed>0?C.red:C.green};"><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;"><div><div style="font-size:12px;color:#666;">${s.retryCount>0?`Reintento ${s.retryCount}/3 · `:""} Cerrada ${new Date(s.closedAt).toLocaleTimeString("es-CL",{hour:"2-digit",minute:"2-digit"})}</div><div style="display:flex;gap:16px;margin-top:4px;"><span style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;">📦 ${s.assigned}</span><span style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:${C.green};">✓ ${s.delivered}</span><span style="font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:${s.failed>0?C.red:C.muted};">✗ ${s.failed}</span></div></div>${s.failed>0&&!s.toColecta&&!state.sacas.find(r=>r.retryOf===s.id)?`<div class="btn-row" style="margin:0;margin-left:auto;">${s.retryCount<3?`<button class="btn btn-amber btn-sm" onclick="reintentarSaca('${s.id}')">🔄 Reintentar mañana</button>`:""}<button class="btn btn-purple btn-sm" onclick="enviarColectaWill('${s.id}')">📋 A Colecta</button></div>`:""}${s.toColecta?`<span style="margin-left:auto;font-size:13px;color:${C.purple};font-weight:700;">📋 En remito</span>`:""}</div></div>`).join("")}`:""}${dateRange(10).reverse().filter(d=>d!==hoy).map(d=>{const dc=state.sacas.filter(s=>s.date===d&&s.closedAt);if(!dc.length)return"";const a=sum(dc,s=>s.assigned),e=sum(dc,s=>s.delivered),t=a>0?Math.round((e/a)*100):0,col=t===100?C.limeD:t>=80?C.amber:C.red;return`<div class="hist-row"><span class="hd">${fmtD(d)}</span><span class="hp">${a} pkgs</span><div class="hbar"><div class="hfill" style="width:${t}%;background:${col};"></div></div><span class="hpct" style="color:${col};">${t}%</span></div>`;}).filter(Boolean).join("")||`<div class="empty" style="margin-top:14px;">Sin historial aún.</div>`}
+${buildSacaPasadaForm(hoy)}`;}
+
+// ── Formulario retro-carga de saca ──
+function buildSacaPasadaForm(hoy){
+  const form = sacaPasadaMode ? sacaPasadaFormHTML(hoy) : "";
+  const btn = sacaPasadaMode
+    ? ""  // botón cancelar va dentro del form
+    : '<button onclick="toggleSacaPasada()" style="display:flex;align-items:center;gap:10px;background:#F0EEE8;border:2px solid #0A0A0B;border-radius:10px;padding:12px 18px;font-size:14px;font-weight:700;cursor:pointer;width:100%;font-family:inherit;">📅 Registrar saca de un día anterior</button>';
+  return '<div style="border-top:2px dashed #DDD;margin-top:24px;padding-top:20px;">'+btn+form+'</div>';
+}
+
+function sacaPasadaFormHTML(hoy){
+  // Pills de días
+  let pills='';
+  for(let i=1;i<=7;i++){
+    const d=new Date();d.setDate(d.getDate()-i);
+    const ds=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Santiago"}).format(d);
+    const lbl=i===1?"Ayer":"Hace "+i+"d";
+    const sub=d.toLocaleDateString("es-CL",{weekday:"short",day:"numeric",month:"short"});
+    const sel=ds===sacaPasadaDate;
+    const bg=sel?"#8B5CF6":"white";
+    const txt=sel?"white":"#555";
+    const brd=sel?"#8B5CF6":"#DDD";
+    const shd=sel?"2px 2px 0 #6D28D9":"none";
+    pills+='<button class="sp-day-btn" data-date="'+ds+'" style="flex:1;min-width:64px;padding:9px 5px;border-radius:9px;border:2px solid '+brd+';font-family:inherit;cursor:pointer;background:'+bg+';box-shadow:'+shd+';">'
+      +'<div style="font-size:11px;font-weight:800;color:'+txt+';">'+lbl+'</div>'
+      +'<div style="font-size:10px;color:'+txt+';margin-top:1px;opacity:0.85;">'+sub+'</div>'
+      +'</button>';
+  }
+
+  const existing=sacaPasadaDate?state.sacas.find(s=>s.date===sacaPasadaDate&&s.closedAt&&!s.retryOf):null;
+  const existAlert=existing?('<div style="background:#FEE2E2;border:2px solid #E63946;border-radius:8px;padding:9px 14px;font-size:13px;font-weight:700;color:#E63946;margin-bottom:12px;">⚠️ Ya existe saca para este día — guardar la reemplazará</div>'):"";
+  const defAsig=existing?existing.assigned:0;
+  const defFail=existing?existing.failed:0;
+
+  // Solo Asignados y Fallidos — Entregados = Asignados - Fallidos (automático)
+  const steppers=sacaPasadaDate?[["📦","sp-asig","Asignados",defAsig],["✗","sp-fail","Fallidos",defFail]].map(function(a){
+    var ico=a[0],id=a[1],lbl=a[2],def=a[3];
+    return '<div style="min-width:0;overflow:hidden;">'
+      +'<div style="font-size:11px;color:#555;font-weight:700;text-transform:uppercase;margin-bottom:6px;">'+ico+' '+lbl+'</div>'
+      +'<div style="display:flex;align-items:center;border:2px solid #0A0A0B;border-radius:9px;overflow:hidden;background:white;box-shadow:2px 2px 0 #0A0A0B;">'
+      +'<button onclick="var e=document.getElementById(\''+id+'\');e.value=Math.max(0,(parseInt(e.value)||0)-1);" style="width:44px;height:52px;background:#F0EEE8;border:none;font-size:22px;font-weight:700;cursor:pointer;flex-shrink:0;">−</button>'
+      +'<input id="'+id+'" type="number" inputmode="numeric" min="0" value="'+def+'" style="flex:1;text-align:center;font-family:\'Fraunces\',serif;font-size:32px;font-weight:900;border:none;outline:none;background:white;min-width:0;" onfocus="this.select()">'
+      +'<button onclick="var e=document.getElementById(\''+id+'\');e.value=(parseInt(e.value)||0)+1;" style="width:44px;height:52px;background:#F0EEE8;border:none;font-size:22px;font-weight:700;cursor:pointer;flex-shrink:0;">+</button>'
+      +'</div></div>';
+  }).join("") : "";
+
+  const guardarBtn=sacaPasadaDate?('<button class="btn btn-purple" style="width:100%;font-size:15px;padding:13px;margin-top:16px;" onclick="guardarSacaPasada()">💾 Guardar saca de '+fmtDL(sacaPasadaDate)+'</button>'):"";
+  const step2=sacaPasadaDate?('<div style="font-size:13px;font-weight:700;color:#7C3AED;margin-bottom:12px;">2. Ingresá los datos de '+fmtDL(sacaPasadaDate)+'</div>'+existAlert+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;min-width:0;overflow:hidden;">'+steppers+'</div>'+guardarBtn):"";
+
+  return '<div style="background:#F5F0FF;border:2px solid #8B5CF6;border-radius:14px;padding:20px;box-shadow:3px 3px 0 #8B5CF6;">'
+    // Header con botón cerrar integrado
+    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">'
+    +'<div style="font-family:\'Fraunces\',serif;font-size:17px;font-weight:700;color:#6D28D9;">📅 Saca de día anterior</div>'
+    +'<button onclick="toggleSacaPasada()" style="background:white;border:2px solid #DDD;border-radius:8px;padding:5px 12px;font-size:13px;font-weight:700;cursor:pointer;color:#888;font-family:inherit;">✕ Cerrar</button>'
+    +'</div>'
+    +'<div style="font-size:12px;font-weight:700;color:#7C3AED;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">1. Elegí el día</div>'
+    +'<div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;" id="sp-pills">'+pills+'</div>'
+    +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;border-top:1px solid #E0D7FF;padding-top:12px;">'
+    +'<span style="font-size:13px;color:#888;font-weight:700;white-space:nowrap;">Otra fecha:</span>'
+    +'<input type="date" value="'+(sacaPasadaDate||"")+'" max="'+hoy+'" style="flex:1;font-family:\'Fraunces\',serif;font-size:14px;font-weight:700;border:2px solid #DDD;border-radius:8px;padding:7px 10px;outline:none;color:#0A0A0B;" id="sp-date-inp">'
+    +'</div>'
+    +step2
+    +'</div>';
+}
+
+// ── COLECTA ──
+function renderColecta(D){const{hoy,conteoHoy,colectaHoy}=D;const willRetornos=state.sacas.filter(s=>s.toColecta&&!s.remitoGenerado);document.getElementById("panel-colecta").innerHTML=`<div class="ctx"><span style="font-size:16px;">🚛</span><div><div class="ctx-title">Colecta — Confirmar salida de paquetes</div><div class="ctx-sub">Cuando llega el chofer, confirma la colecta</div></div><span class="ctx-pill ${colectaHoy.length>0?"cp-lime":"cp-white"}">${colectaHoy.length>0?colectaHoy.length+" carrier"+(colectaHoy.length>1?"s":"")+" confirmado"+(colectaHoy.length>1?"s":""):"Sin colectas hoy aún"}</span></div><div class="st">Confirmar colecta del día</div><div style="font-size:14px;color:#555;margin-bottom:20px;line-height:1.6;">Cuando llega el chofer, confirma la colecta. Solo se cuentan los paquetes de Drop Off.</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px;min-width:0;overflow:hidden;">${Object.entries(CARRIERS).filter(([k,c])=>c.hasDropOff).map(([k,c])=>{const conteo=conteoHoy.find(x=>x.carrier===k),colectada=colectaHoy.find(x=>x.carrier===k);return`<div class="card" style="padding:18px 20px;${colectada?"opacity:0.7":""}"><div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">${cb(k)}<span style="font-size:15px;font-weight:800;">${c.name}</span>${colectada?`<span style="margin-left:auto;font-size:12px;color:${C.green};font-weight:700;">✓ Confirmada</span>`:""}</div>${conteo?`<div style="font-family:'Fraunces',serif;font-size:36px;font-weight:900;color:${C.blue};margin-bottom:4px;">${conteo.count}</div><div style="font-size:12px;color:#666;margin-bottom:14px;">paquetes Drop Off hoy</div>`:`<div style="font-size:14px;color:${C.amber};font-weight:700;margin-bottom:14px;">⚠️ Sin Drop Off registrado</div>`}${!colectada?`<button class="btn ${conteo?"btn-dark":"btn-muted"}" style="width:100%;" ${!conteo?"disabled":""} onclick="confirmarColecta('${k}')">🚛 Confirmar colecta</button>`:`<div style="font-size:13px;color:${C.green};font-weight:700;">✓ ${colectada.count} paquetes salieron</div>`}</div>`;}).join("")}</div>${willRetornos.length>0?`<div class="colecta-box"><div style="font-family:'Fraunces',serif;font-size:18px;font-weight:700;margin-bottom:8px;">📋 Paquetes de Will para devolver</div><div style="font-size:14px;color:#555;margin-bottom:14px;">${sum(willRetornos,s=>s.failed)} paquetes fallidos deben incluirse en el remito.</div><button class="btn btn-purple" onclick="generarRemitoWill()">📋 Generar Remito</button></div>`:""}
+<div id="remito-area"></div><div class="st" style="margin-top:8px;">Historial de colectas recientes</div>${state.colectas.length===0?`<div class="empty">Sin colectas registradas aún.</div>`:""}${dateRange(7).reverse().map(d=>{const dc=state.colectas.filter(c=>c.date===d);if(!dc.length)return"";return`<div class="card-lite"><div style="font-size:13px;color:#666;font-weight:700;margin-bottom:10px;">${fmtDL(d)}</div><div style="display:flex;gap:16px;flex-wrap:wrap;">${dc.map(c=>`<div style="text-align:center;"><div style="font-family:'Fraunces',serif;font-size:24px;font-weight:900;color:${C.green};">${c.count}</div><div style="margin-top:4px;">${cb(c.carrier)}</div></div>`).join("")}<div style="margin-left:auto;text-align:center;"><div style="font-family:'Fraunces',serif;font-size:24px;font-weight:900;">${sum(dc,c=>c.count)}</div><div style="font-size:11px;color:#888;font-weight:700;margin-top:4px;">TOTAL</div></div></div></div>`;}).filter(Boolean).join("")}`;}
+function generarRemitoWill(){const willRetornos=state.sacas.filter(s=>s.toColecta&&!s.remitoGenerado),total=sum(willRetornos,s=>s.failed),dateStr=new Date().toLocaleDateString("es-CL",{day:"2-digit",month:"long",year:"numeric"});document.getElementById("remito-area").innerHTML=`<div class="card"><div style="border-bottom:2px solid #0A0A0B;padding-bottom:14px;margin-bottom:18px;"><div style="font-size:11px;color:#888;text-transform:uppercase;font-weight:700;letter-spacing:.1em;">REMITO DE DEVOLUCIÓN</div><div style="font-family:'Fraunces',serif;font-size:24px;font-weight:900;margin-top:4px;">La Tech Hub — Devolución Saca Will</div><div style="font-size:14px;color:#555;margin-top:4px;font-weight:600;">${dateStr} · ${total} paquetes</div></div><table class="remito-tbl"><thead><tr><th>#</th><th>Fecha saca</th><th>Reintento</th><th>Paquetes</th><th>Motivo</th></tr></thead><tbody>${willRetornos.map((s,i)=>`<tr><td style="color:#888;">${i+1}</td><td>${fmtD(s.date)}</td><td style="color:${C.amber};font-weight:700;">${s.retryCount}/3</td><td><strong style="font-family:'Fraunces',serif;font-size:18px;">${s.failed}</strong></td><td style="color:#555;">3 reintentos agotados</td></tr>`).join("")}<tr style="background:#F8F8F6;"><td colspan="3"><strong>TOTAL</strong></td><td><strong style="font-family:'Fraunces',serif;font-size:20px;">${total}</strong></td><td></td></tr></tbody></table><div class="sign-row"><div class="sign-box"><div style="font-size:12px;color:#888;margin-bottom:4px;">Firma Responsable Hub</div><div style="font-size:14px;font-weight:700;">La Tech Hub · Las Condes</div></div><div class="sign-box"><div style="font-size:12px;color:#888;margin-bottom:4px;">Firma Chofer</div><div style="font-size:14px;color:#888;">Nombre: ___________________</div></div></div><div class="btn-row no-print" style="margin-top:20px;"><button class="btn btn-dark" onclick="window.print()">🖨️ Imprimir</button><button class="btn btn-green" onclick="marcarRemitoGenerado()">✓ Entregado al chofer</button><button class="btn btn-muted" onclick="document.getElementById('remito-area').innerHTML=''">← Cerrar</button></div></div>`;document.getElementById("remito-area").scrollIntoView({behavior:"smooth"});}
+function marcarRemitoGenerado(){state.sacas=state.sacas.map(s=>s.toColecta?{...s,remitoGenerado:true}:s);save();toast("✅ Remito marcado como entregado",C.green);document.getElementById("remito-area").innerHTML="";renderAll();}
+
+// ═══ TURBO & FLEX ═══════════════════════════════════════════
+const TARIFA_TF={turbo:4490,flex:3490,promo:2990},COSTO_T=3000,COSTO_FR=15000;
+const TF_TF=["Recibido en Hub","Preparando despacho","Ezequiel notificado","En ruta","Entregado"];
+const TF_FF=["Agendado","Recibido en Hub","Preparando despacho","En ruta","Entregado"];
+const TF_FINAL=["Entregado","No entregado"];
+const TF_SC={"Recibido en Hub":"#0057FF","Agendado":"#8B5CF6","Preparando despacho":"#F59E0B","Ezequiel notificado":"#8B5CF6","En ruta":"#E67E22","Entregado":"#22C55E","No entregado":"#E63946"};
+const TF_PAY={pendiente:{l:"Pendiente",c:"#F59E0B"},enviada:{l:"Factura enviada",c:"#8B5CF6"},pagada:{l:"Pagada ✓",c:"#22C55E"},vencida:{l:"Vencida",c:"#E63946"}};
+let tfSub="nueva",tfWO=0,tfAF="all",tfExp="",tfDone=null,tfShowCF=false,tfEditCL=null;
+let tfType="turbo",tfCID="",tfPkgs=[],tfDate=todayStr(),tfNotes="";
+function tfST(s){tfSub=s;tfDone=null;renderAll();}
+function tfTogExp(id){tfExp=tfExp===id?"":id;renderAll();}
+function tfAdv(id){const o=state.hubOrders.find(x=>x.id===id);if(!o)return;const flow=o.type==="turbo"?TF_TF:TF_FF,idx=flow.indexOf(o.status);if(idx<flow.length-1){o.status=flow[idx+1];o.statusHistory.push({status:o.status,ts:Date.now()});save();toast("→ "+o.status,C.green);renderAll();}}
+function tfFail(id){const o=state.hubOrders.find(x=>x.id===id);if(!o)return;o.status="No entregado";o.statusHistory.push({status:"No entregado",ts:Date.now()});save();toast("✗ No entregado",C.red);renderAll();}
+function tfPay(key,status){state.hubPayments[key]=status;save();renderAll();}
+function tfRemPkg(code){tfPkgs=tfPkgs.filter(p=>p!==code);renderAll();}
+function tfAddManual(){
+  const el=document.getElementById("tf-scan");
+  if(!el)return;
+  const v=el.value.trim().replace(/\s+/g,""); // quitar espacios
+  if(!v){el.focus();return;}
+  if(!tfPkgs.includes(v)){
+    tfPkgs.push(v);
+    el.value="";
+    el.focus();
+    toast("✚ Paquete agregado: "+v,C.blue);
+    renderAll();
+    setTimeout(()=>{const s=document.getElementById("tf-scan");if(s)s.focus();},60);
+  } else {
+    toast("⚠️ Ese número ya está en la lista",C.amber);
+    el.select();
+  }
+}
+function tfSubmit(){if(!tfCID||!tfPkgs.length)return;const cl=state.hubClients.find(c=>c.id===tfCID),isP=cl?.isPromo&&cl?.promoUntil&&Date.now()<cl.promoUntil;const price=isP?TARIFA_TF.promo:tfType==="turbo"?TARIFA_TF.turbo:TARIFA_TF.flex;const ord={id:"ORD-"+Date.now()+"-"+Math.random().toString(36).slice(2,4).toUpperCase(),type:tfType,clientId:tfCID,packages:[...tfPkgs],status:tfType==="turbo"?TF_TF[0]:TF_FF[0],createdAt:Date.now(),scheduledDate:tfType==="flex"?tfDate:null,pricePerPkg:price,notes:tfNotes,statusHistory:[{status:tfType==="turbo"?TF_TF[0]:TF_FF[0],ts:Date.now()}]};state.hubOrders.push(ord);save();tfDone={id:ord.id,cn:cl?.name||"—",pc:tfPkgs.length,tot:price*tfPkgs.length};tfPkgs=[];tfNotes="";tfCID="";renderAll();}
+function tfWkRange(off){const n=new Date(),day=n.getDay(),mon=new Date(n);mon.setDate(n.getDate()-(day===0?6:day-1)+off*7);mon.setHours(0,0,0,0);const sun=new Date(mon);sun.setDate(mon.getDate()+6);sun.setHours(23,59,59,999);return{start:mon,end:sun};}
+function tfWkKey(off){const{start}=tfWkRange(off);return"w-"+start.toISOString().split("T")[0];}
+function tfEditC(id){tfEditCL=state.hubClients.find(c=>c.id===id)||null;tfShowCF=true;renderAll();}
+function tfDelC(id){if(!confirm("¿Eliminar este cliente?"))return;state.hubClients=state.hubClients.filter(c=>c.id!==id);save();toast("Cliente eliminado",C.amber);renderAll();}
+function tfSaveF(){const ex=tfEditCL,name=(document.getElementById("tf-cn")?.value||"").trim();if(!name){toast("El nombre es obligatorio",C.amber);return;}const data={name,rut:(document.getElementById("tf-cr")?.value||"").trim(),phone:(document.getElementById("tf-cp")?.value||"").trim(),email:(document.getElementById("tf-ce")?.value||"").trim(),address:(document.getElementById("tf-ca")?.value||"").trim(),notes:(document.getElementById("tf-cno")?.value||"").trim()};if(ex){data.id=ex.id;data.createdAt=ex.createdAt;data.isPromo=ex.isPromo;data.promoUntil=ex.promoUntil;state.hubClients=state.hubClients.map(c=>c.id===ex.id?{...data}:c);toast("✅ Cliente actualizado",C.green);}else{const isP=document.getElementById("tf-cpromo")?.checked||false,days=parseInt(document.getElementById("tf-cpd")?.value)||30;data.id="CLI-"+Date.now();data.createdAt=Date.now();data.isPromo=isP;data.promoUntil=isP?Date.now()+days*86400000:null;state.hubClients.push(data);toast("✅ Cliente creado",C.green);}save();tfShowCF=false;tfEditCL=null;renderAll();}
+function renderTF(){const el=document.getElementById("panel-tf"),act=(state.hubOrders||[]).filter(o=>!TF_FINAL.includes(o.status));let html=`<div class="ctx"><span style="font-size:16px;">⚡</span><div><div class="ctx-title">Turbo &amp; Flex — Entregas propias LaTech Hub</div><div class="ctx-sub">${tfSub==="nueva"?"Registrar nueva orden":tfSub==="activas"?"Órdenes en curso":tfSub==="factura"?"Facturación semanal":"Gestión de clientes"}</div></div><span class="ctx-pill cp-pink">⚡${fmtCLP(TARIFA_TF.turbo)} · 📅${fmtCLP(TARIFA_TF.flex)}</span></div><div class="subtabs"><button class="subtab ${tfSub==="nueva"?"active":""}" onclick="tfST('nueva')">＋ Nueva Orden</button><button class="subtab ${tfSub==="activas"?"active":""}" onclick="tfST('activas')">◉ Activas${act.length?" ("+act.length+")":""}</button><button class="subtab ${tfSub==="factura"?"active":""}" onclick="tfST('factura')">◈ Facturación</button><button class="subtab ${tfSub==="clientes"?"active":""}" onclick="tfST('clientes')">◎ Clientes</button></div>`;if(tfSub==="nueva")html+=tfNueva();else if(tfSub==="activas")html+=tfActivas();else if(tfSub==="factura")html+=tfFactura();else html+=tfClientes();el.innerHTML=html;if(tfSub==="nueva"){const s=document.getElementById("tf-scan");if(s&&tfCID)s.focus();}}
+function tfNueva(){if(tfDone)return`<div style="text-align:center;padding:48px 24px;"><div style="width:72px;height:72px;border-radius:50%;background:#E6FFB2;border:3px solid #C8FF00;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 16px;">✓</div><div style="font-family:'Fraunces',serif;font-size:26px;font-weight:900;color:#2D5A00;margin-bottom:6px;">Orden registrada</div><div style="font-size:14px;color:#888;margin-bottom:4px;">${tfDone.id}</div><div style="font-family:'Fraunces',serif;font-size:18px;font-weight:700;margin-bottom:24px;">${tfDone.cn} · ${tfDone.pc} paq · ${fmtCLP(tfDone.tot)} neto</div><div class="btn-row" style="justify-content:center;"><button class="btn btn-dark" onclick="tfDone=null;renderAll();">＋ Nueva Orden</button><button class="btn btn-muted" onclick="tfST('activas')">Ver activas</button></div></div>`;const cls=state.hubClients||[],cl=cls.find(c=>c.id===tfCID),isP=cl?.isPromo&&cl?.promoUntil&&Date.now()<cl.promoUntil;const price=isP?TARIFA_TF.promo:tfType==="turbo"?TARIFA_TF.turbo:TARIFA_TF.flex,total=price*tfPkgs.length,tc=tfType==="turbo"?C.blue:C.purple;return`<div style="margin-bottom:20px;"><div class="lbl">Tipo de servicio</div><div class="svc-grid"><button class="svc-card ${tfType==="turbo"?"svc-sel-t":""}" onclick="tfType='turbo';renderAll();"><div style="font-size:26px;margin-bottom:8px;">⚡</div><div style="font-family:'Fraunces',serif;font-size:18px;font-weight:900;color:${tfType==="turbo"?C.blue:"#0A0A0B"};">TURBO</div><div style="font-size:14px;color:#777;margin:4px 0;">Express 2–3 hrs · Ezequiel</div><div style="font-size:15px;font-weight:700;color:${tfType==="turbo"?C.blue:"#777"};">${fmtCLP(TARIFA_TF.turbo)}/paq</div></button><button class="svc-card ${tfType==="flex"?"svc-sel-f":""}" onclick="tfType='flex';renderAll();"><div style="font-size:26px;margin-bottom:8px;">📅</div><div style="font-family:'Fraunces',serif;font-size:18px;font-weight:900;color:${tfType==="flex"?C.purple:"#0A0A0B"};">FLEX</div><div style="font-size:14px;color:#777;margin:4px 0;">Programado · Entrega ≤ 22:00</div><div style="font-size:15px;font-weight:700;color:${tfType==="flex"?C.purple:"#777"};">${fmtCLP(TARIFA_TF.flex)}/paq</div></button></div></div><div style="margin-bottom:16px;"><div class="lbl">Cliente Hub</div><select class="inp" style="font-size:16px;" onchange="tfCID=this.value;renderAll();"><option value="">— Seleccionar cliente —</option>${cls.map(c=>{const p=c.isPromo&&c.promoUntil&&Date.now()<c.promoUntil;return`<option value="${c.id}" ${tfCID===c.id?"selected":""}>${c.name}${p?" 🟢":""}</option>`;}).join("")}</select>${cls.length===0?`<div style="font-size:14px;color:${C.amber};margin-top:6px;font-weight:700;">⚠ Agrega un cliente en la pestaña Clientes primero.</div>`:""}${isP?`<div style="font-size:14px;color:${C.green};margin-top:6px;font-weight:700;">🟢 Precio promo activo — ${fmtCLP(TARIFA_TF.promo)}/paq</div>`:""}</div>${tfType==="flex"?`<div style="margin-bottom:16px;"><div class="lbl">Fecha de entrega programada</div><input type="date" class="inp" value="${tfDate}" min="${todayStr()}" style="font-size:16px;" onchange="tfDate=this.value;"><div style="font-size:14px;color:${C.amber};margin-top:6px;font-weight:700;">⚠ Horario tope: 22:00 hrs · Ideal antes de las 21:00</div></div>`:""}<div style="margin-bottom:16px;">
+  <div class="lbl">Paquetes ${tfPkgs.length?`<span style="color:${C.blue};text-transform:none;letter-spacing:0;font-weight:800;">${tfPkgs.length} agregado${tfPkgs.length!==1?"s":""}</span>`:""}</div>
+  <div style="background:#F0F4FF;border:2px solid #0057FF;border-radius:12px;padding:14px 16px;margin-bottom:10px;">
+    <div style="font-size:11px;color:#0057FF;font-weight:800;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">¿Dónde encontrar el número?</div>
+    <div style="font-size:13px;color:#444;line-height:1.6;">Busca en la etiqueta el campo <strong>"Envío"</strong> o <strong>"N° de seguimiento"</strong>.<br>Ej: <span style="font-family:'Fraunces',serif;font-weight:700;font-size:15px;">46995731873</span></div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:stretch;">
+    <input id="tf-scan" type="text" inputmode="numeric" class="inp" placeholder="Número de envío o seguimiento" autocomplete="off" spellcheck="false" style="flex:1;font-family:'Fraunces',serif;font-size:20px;font-weight:700;padding:13px 16px;border:2px solid #0057FF;border-radius:10px;" onkeydown="if(event.key==='Enter'){tfAddManual();}">
+    <button class="btn btn-blue" style="font-size:18px;padding:0 20px;white-space:nowrap;" onclick="tfAddManual()">+ Agregar</button>
+  </div>
+  <div style="font-size:13px;color:#888;margin-top:7px;">Escribí el número y tocá <strong>Agregar</strong> o presioná <strong>Enter</strong>. Repetí por cada paquete.</div>
+  ${tfPkgs.length?`<div class="pkg-chips" style="margin-top:12px;">${tfPkgs.map((p,i)=>`<span class="pkg-chip"><span style="color:#888;font-size:11px;">#${i+1}</span> ${p}<button class="pkg-del" onclick="tfRemPkg('${p.replace(/'/g,"&#39;")}')">✕</button></span>`).join("")}</div>`:""}
+</div><div style="margin-bottom:22px;"><div class="lbl">Notas (opcional)</div><input type="text" class="inp" id="tf-ni" value="${tfNotes.replace(/"/g,'&quot;')}" placeholder="Instrucciones de entrega..." style="font-size:15px;" oninput="tfNotes=this.value;"></div>${tfCID&&tfPkgs.length?`<div class="sumbox">${[["Tipo",tfType==="turbo"?"⚡ TURBO":"📅 FLEX"],["Cliente",cl?.name||"—"],["Paquetes",tfPkgs.length],["Precio unitario",fmtCLP(price)+(isP?" (promo)":"")]].map(([k,v])=>`<div class="sumrow"><span style="color:#666;">${k}</span><span style="font-weight:700;">${v}</span></div>`).join("")}<div class="sumrow" style="border-top:2px solid #0A0A0B;padding-top:10px;margin-top:6px;margin-bottom:0;"><span style="font-weight:700;font-size:15px;">Total neto</span><span style="font-family:'Fraunces',serif;font-size:24px;font-weight:900;color:${tc};">${fmtCLP(total)}</span></div></div>`:""}<button class="btn btn-${tfType==="turbo"?"blue":"purple"}" style="width:100%;padding:14px;font-size:16px;${!tfCID||!tfPkgs.length?"opacity:0.4;cursor:not-allowed":""}" ${!tfCID||!tfPkgs.length?"disabled":""} onclick="tfSubmit()">${tfType==="turbo"?"⚡ Registrar Orden Turbo":"📅 Registrar Orden Flex"}</button>`;}
+function tfActivas(){const all=(state.hubOrders||[]).filter(o=>!TF_FINAL.includes(o.status)),shown=tfAF==="all"?all:all.filter(o=>o.type===tfAF);const t0=new Date();t0.setHours(0,0,0,0);const comp=(state.hubOrders||[]).filter(o=>TF_FINAL.includes(o.status)&&new Date(o.createdAt)>=t0);return`<div class="btn-row" style="margin-bottom:16px;margin-top:0;">${[["all","Todas ("+all.length+")"],["turbo","⚡ Turbo ("+all.filter(o=>o.type==="turbo").length+")"],["flex","📅 Flex ("+all.filter(o=>o.type==="flex").length+")"]].map(([id,lbl])=>`<button class="btn btn-sm ${tfAF===id?"btn-dark":"btn-muted"}" onclick="tfAF='${id}';renderAll();">${lbl}</button>`).join("")}</div>${shown.length===0?`<div class="empty">Sin órdenes activas${tfAF!=="all"?" de este tipo":""}.</div>`:""}${shown.map(ord=>{const cl=state.hubClients.find(c=>c.id===ord.clientId),flow=ord.type==="turbo"?TF_TF:TF_FF,idx=flow.indexOf(ord.status),next=idx<flow.length-1?flow[idx+1]:null;const col=ord.type==="turbo"?C.blue:C.purple,sc=TF_SC[ord.status]||C.muted,isE=tfExp===ord.id;return`<div class="ord-card ${ord.type==="flex"?"ord-fo":""}" style="border-left-color:${col};"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;"><div><div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap;"><span class="spill" style="background:${col}20;color:${col};">${ord.type==="turbo"?"⚡ TURBO":"📅 FLEX"}</span><span class="spill" style="background:${sc}20;color:${sc};">${ord.status}</span>${ord.scheduledDate?`<span class="spill" style="background:#FFF3CD;color:#B45309;">📅 ${fmtD(ord.scheduledDate)}</span>`:""}</div><div style="font-family:'Fraunces',serif;font-size:19px;font-weight:700;">${cl?.name||"—"}</div><div style="font-size:14px;color:#888;margin-top:2px;">${ord.packages.length} paq · ${fmtCLP(ord.pricePerPkg*ord.packages.length)} neto</div><div style="font-size:12px;color:#AAA;margin-top:1px;">${ord.id} · ${fmtTS(ord.createdAt)}</div></div><button class="btn btn-sm btn-muted" onclick="tfTogExp('${ord.id}')">${isE?"▲":"▼"}</button></div><div class="oprog">${flow.map((_,i)=>`<div class="oseg" style="background:${i<=idx?col:"#DDD"};"></div>`).join("")}</div><div class="btn-row" style="margin-top:4px;">${next?`<button class="btn btn-sm ${next==="Entregado"?"btn-green":ord.type==="turbo"?"btn-blue":"btn-purple"}" onclick="tfAdv('${ord.id}')">→ ${next}</button>`:""}${!TF_FINAL.includes(ord.status)?`<button class="btn btn-sm btn-red-out" onclick="tfFail('${ord.id}')">✕ No entregado</button>`:""}</div>${isE?`<div style="margin-top:14px;border-top:1.5px solid #EEE;padding-top:14px;"><div class="lbl">Paquetes (${ord.packages.length})</div><div class="pkg-chips" style="margin-bottom:12px;">${ord.packages.map((p,i)=>`<span class="pkg-chip"><span style="color:#888;font-size:11px;">#${i+1}</span> ${p}</span>`).join("")}</div>${ord.notes?`<div style="font-size:14px;color:#666;margin-bottom:10px;">📝 ${ord.notes}</div>`:""}<div class="lbl">Historial</div>${(ord.statusHistory||[]).map(h=>`<div style="font-size:12px;color:#AAA;margin-bottom:2px;">${fmtTS(h.ts)} — ${h.status}</div>`).join("")}</div>`:""}</div>`;}).join("")}${comp.length?`<div style="font-size:11px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-top:22px;margin-bottom:10px;">COMPLETADAS HOY (${comp.length})</div>${comp.map(o=>{const cl=state.hubClients.find(c=>c.id===o.clientId),sc=TF_SC[o.status]||C.muted;return`<div style="background:white;border:1.5px solid #DDD;border-left:4px solid ${sc};border-radius:10px;padding:11px 16px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;opacity:0.65;"><span style="font-weight:700;font-size:14px;">${cl?.name||"—"} · ${o.packages.length} paq</span><span class="spill" style="background:${sc}20;color:${sc};">${o.status}</span></div>`;}).join("")}`:""}`;}
+function tfFactura(){const{start,end}=tfWkRange(tfWO),wk=tfWkKey(tfWO);const wkOrds=(state.hubOrders||[]).filter(o=>{const d=new Date(o.createdAt);return d>=start&&d<=end;});const byC={};wkOrds.forEach(o=>{if(!byC[o.clientId])byC[o.clientId]={t:0,f:0,tn:0,fn:0,tc:0,fs:0};const cnt=o.packages.length,amt=cnt*o.pricePerPkg;if(o.type==="turbo"){byC[o.clientId].t+=cnt;byC[o.clientId].tn+=amt;byC[o.clientId].tc+=cnt*COSTO_T;}else{byC[o.clientId].f+=cnt;byC[o.clientId].fn+=amt;byC[o.clientId].fs+=1;}});const rows=Object.entries(byC).map(([cid,d])=>{const cl=state.hubClients.find(c=>c.id===cid),neto=d.tn+d.fn,fc=d.fs*COSTO_FR,cost=d.tc+fc,margin=neto-cost,payKey=`${wk}__${cid}`,ps=state.hubPayments[payKey]||"pendiente";return{cid,cl,...d,neto,cost,margin,payKey,ps};}).sort((a,b)=>b.neto-a.neto);const tN=rows.reduce((s,r)=>s+r.neto,0),tC=rows.reduce((s,r)=>s+r.cost,0),tM=rows.reduce((s,r)=>s+r.margin,0),tT=rows.reduce((s,r)=>s+r.t,0),tF=rows.reduce((s,r)=>s+r.f,0);const wkLbl=tfWO===0?"Semana actual":tfWO===-1?"Semana anterior":`Hace ${Math.abs(tfWO)} semanas`,fd=d=>d.toLocaleDateString("es-CL",{day:"2-digit",month:"2-digit",year:"numeric"});return`<div class="wk-nav"><button class="btn btn-sm btn-muted" onclick="tfWO--;renderAll();">← Anterior</button><div style="flex:1;text-align:center;"><div style="font-weight:700;font-size:15px;">${wkLbl}</div><div style="font-size:13px;color:#888;">${fd(start)} — ${fd(end)}</div></div><button class="btn btn-sm btn-muted" onclick="tfWO++;renderAll();" ${tfWO>=0?"disabled style='opacity:0.3;cursor:not-allowed'":""}>Siguiente →</button></div><div class="kpi-row" style="margin-bottom:22px;"><div class="kpi" style="border-color:${C.pink};box-shadow:3px 3px 0 ${C.pink};"><div class="kn" style="color:${C.pink};">${tT+tF}</div><div class="kl">Total paquetes</div><div class="ks">⚡${tT} · 📅${tF}</div></div><div class="kpi"><div class="kn" style="font-size:28px;color:#0A0A0B;">${fmtCLP(tN)}</div><div class="kl">Neto a facturar</div><div class="ks">Costo rider: ${fmtCLP(tC)}</div></div><div class="kpi" style="border-color:${tM>=0?C.green:C.red};box-shadow:3px 3px 0 ${tM>=0?C.green:C.red};"><div class="kn" style="font-size:28px;color:${tM>=0?C.green:C.red};">${fmtCLP(tM)}</div><div class="kl">Margen bruto</div><div class="ks">${tN>0?Math.round((tM/tN)*100):0}% sobre neto</div></div></div>${rows.length===0?`<div class="empty">Sin órdenes en este período.</div>`:`<div class="card" style="padding:0;overflow:hidden;margin-bottom:14px;"><div style="overflow-x:auto;"><table class="bil-tbl"><thead><tr><th>Cliente</th><th style="text-align:right;">⚡ Paq</th><th style="text-align:right;">📅 Paq</th><th style="text-align:right;">Neto</th><th style="text-align:right;">Costo rider</th><th style="text-align:right;">Margen</th><th style="text-align:right;">+IVA</th><th style="text-align:center;">Pago</th></tr></thead><tbody>${rows.map(r=>{const ps=TF_PAY[r.ps]||TF_PAY.pendiente;return`<tr><td><div style="font-weight:700;font-size:14px;">${r.cl?.name||"—"}</div><div style="font-size:12px;color:#888;">${r.cl?.rut||""}</div></td><td style="text-align:right;"><span style="font-family:'Fraunces',serif;font-size:18px;font-weight:900;color:${C.blue};">${r.t}</span></td><td style="text-align:right;"><span style="font-family:'Fraunces',serif;font-size:18px;font-weight:900;color:${C.purple};">${r.f}</span>${r.f?`<div style="font-size:11px;color:#AAA;">${r.fs} sal.</div>`:""}</td><td style="text-align:right;font-weight:700;">${fmtCLP(r.neto)}</td><td style="text-align:right;color:${C.amber};font-size:13px;">${fmtCLP(r.cost)}</td><td style="text-align:right;"><span style="font-weight:700;color:${r.margin>=0?C.green:C.red};">${fmtCLP(r.margin)}</span><div style="font-size:11px;color:#AAA;">${r.neto>0?Math.round((r.margin/r.neto)*100):0}%</div></td><td style="text-align:right;font-weight:700;">${fmtCLP(Math.round(r.neto*1.19))}</td><td style="text-align:center;"><select class="pay-sel" style="color:${ps.c};border-color:${ps.c}50;background:${ps.c}15;" onchange="tfPay('${r.payKey}',this.value)">${Object.entries(TF_PAY).map(([k,v])=>`<option value="${k}" ${r.ps===k?"selected":""}>${v.l}</option>`).join("")}</select></td></tr>`;}).join("")}</tbody><tfoot><tr><td style="font-size:11px;text-transform:uppercase;">Total semana</td><td style="text-align:right;font-family:'Fraunces',serif;font-size:18px;font-weight:900;color:${C.blue};">${tT}</td><td style="text-align:right;font-family:'Fraunces',serif;font-size:18px;font-weight:900;color:${C.purple};">${tF}</td><td style="text-align:right;font-weight:700;">${fmtCLP(tN)}</td><td style="text-align:right;color:${C.amber};font-weight:700;">${fmtCLP(tC)}</td><td style="text-align:right;font-weight:700;font-size:15px;color:${tM>=0?C.green:C.red};">${fmtCLP(tM)}</td><td style="text-align:right;font-weight:700;">${fmtCLP(Math.round(tN*1.19))}</td><td></td></tr></tfoot></table></div></div>`}<div class="infonote" style="background:#FFFBEB;border:1.5px solid ${C.amber};"><strong style="font-size:12px;color:#B45309;">COSTO RIDER — FASE INICIAL</strong><br><b>Turbo:</b> Ezequiel ${fmtCLP(COSTO_T)}/paq fijo. &nbsp; <b>Flex:</b> ${fmtCLP(COSTO_FR)}/salida de ruta (mínimo). Con 2–5 paq/salida el costo real es ${fmtCLP(3000)}–${fmtCLP(7500)}/paq. Objetivo ${fmtCLP(1250)}/paq al llegar a 20+ paq/salida.</div><div class="infonote" style="background:#EFF5FF;border:1.5px solid ${C.blue};"><strong style="font-size:12px;color:${C.blue};">COBRANZA — ROADMAP RELBASE</strong><br>Fase actual: factura manual en Relbase → email → seguimiento en cobranza Relbase.<br>Fase futura: factura automática al cierre de semana → email + WhatsApp Business → estado sincronizado aquí.</div>`;}
+function tfClientes(){if(tfShowCF){const c=tfEditCL||{};return`<div style="max-width:500px;"><div style="font-family:'Fraunces',serif;font-size:22px;font-weight:700;margin-bottom:20px;">${c.id?"Editar cliente":"Nuevo cliente"}</div>${[["Nombre / Razón Social *","tf-cn","text","La Tech SpA",c.name],["RUT","tf-cr","text","76.123.456-7",c.rut],["Teléfono / WhatsApp","tf-cp","tel","+56 9 XXXX XXXX",c.phone],["Email","tf-ce","email","contacto@empresa.cl",c.email],["Dirección","tf-ca","text","Las Condes, RM",c.address]].map(([l,id,t,ph,v])=>`<div style="margin-bottom:14px;"><div class="lbl">${l}</div><input type="${t}" class="inp" id="${id}" value="${v||""}" placeholder="${ph}" style="font-size:15px;"></div>`).join("")}<div style="margin-bottom:16px;"><div class="lbl">Notas</div><input type="text" class="inp" id="tf-cno" value="${c.notes||""}" placeholder="Horarios, instrucciones..." style="font-size:15px;"></div>${!c.id?`<div class="card-lite" style="background:#EFFFCE;border-color:#22C55E;margin-bottom:18px;"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;"><input type="checkbox" id="tf-cpromo" style="width:20px;height:20px;accent-color:#22C55E;"><label for="tf-cpromo" style="font-size:15px;font-weight:700;cursor:pointer;">Precio promo activo (${fmtCLP(TARIFA_TF.promo)}/paq)</label></div><div id="tf-cpw" style="display:none;"><div class="lbl">Duración (días)</div><input type="number" class="inp" id="tf-cpd" value="30" min="1" max="90" style="width:140px;font-size:16px;"></div></div><script>document.getElementById("tf-cpromo").onchange=function(){document.getElementById("tf-cpw").style.display=this.checked?"":"none"};<\/script>`:`<div class="card-lite" style="margin-bottom:16px;background:#F8F8F6;"><div style="font-size:14px;color:#888;">Promo: ${c.isPromo&&c.promoUntil&&Date.now()<c.promoUntil?`🟢 Activa hasta ${new Date(c.promoUntil).toLocaleDateString("es-CL",{day:"2-digit",month:"short"})}`:c.isPromo?"Vencida":"Sin promo"}</div></div>`}<div class="btn-row"><button class="btn btn-dark" onclick="tfSaveF()">${c.id?"Guardar":"Crear cliente"}</button><button class="btn btn-muted" onclick="tfShowCF=false;tfEditCL=null;renderAll();">Cancelar</button></div></div>`;}const cls=state.hubClients||[];return`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;"><div style="font-size:15px;color:#666;font-weight:600;">${cls.length} cliente${cls.length!==1?"s":""} registrado${cls.length!==1?"s":""}</div><button class="btn btn-dark" onclick="tfShowCF=true;tfEditCL=null;renderAll();">＋ Nuevo cliente</button></div>${cls.length===0?`<div class="empty">Sin clientes aún. Agrega el primero para crear órdenes.</div>`:""}${cls.map(c=>{const isP=c.isPromo&&c.promoUntil&&Date.now()<c.promoUntil,ords=(state.hubOrders||[]).filter(o=>o.clientId===c.id),totP=ords.filter(o=>o.status==="Entregado").reduce((s,o)=>s+o.packages.length,0);return`<div class="cl-row"><div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;"><span style="font-family:'Fraunces',serif;font-size:16px;font-weight:700;">${c.name}</span>${isP?`<span class="spill" style="background:#E6FFB2;color:#2D5A00;font-size:11px;">🟢 PROMO</span>`:""}</div><div style="font-size:14px;color:#888;">${[c.rut,c.phone,c.email].filter(Boolean).join(" · ")||"Sin datos de contacto"}</div><div style="font-size:12px;color:#AAA;margin-top:2px;">${ords.length} órdenes · ${totP} paq entregados${isP?` · Promo hasta ${new Date(c.promoUntil).toLocaleDateString("es-CL",{day:"2-digit",month:"short"})}`:""}</div></div><div style="display:flex;gap:8px;"><button class="btn btn-sm btn-muted" onclick="tfEditC('${c.id}')">Editar</button><button class="btn btn-sm btn-red-out" onclick="tfDelC('${c.id}')">✕</button></div></div>`;}).join("")}<div class="infonote" style="background:#EFF5FF;border:1.5px solid ${C.blue};margin-top:8px;"><strong style="font-size:12px;color:${C.blue};">🔌 Integración futura NinjaHub</strong><br><span style="font-size:13px;color:#555;">Los clientes se sincronizarán con NinjaHub (plataforma propia) para tracking y notificaciones en tiempo real.</span></div>`;}
+
+// ── REPORTES ──
+let reportePeriod="month";
+function renderReporte(D){
+  const periodos=[{id:"week",label:"Esta semana"},{id:"month",label:"Este mes"},{id:"prev",label:"Mes anterior"},{id:"all",label:"Todo el tiempo"}];
+  const now=new Date();let desde,hasta=todayStr();
+  if(reportePeriod==="week"){const d=new Date();d.setDate(d.getDate()-6);desde=d.toLocaleDateString("es-CL",{timeZone:"America/Santiago"}).split("/").reverse().join("-");}
+  else if(reportePeriod==="month"){desde=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-01`;}
+  else if(reportePeriod==="prev"){const pm=new Date(now.getFullYear(),now.getMonth()-1,1);desde=`${pm.getFullYear()}-${String(pm.getMonth()+1).padStart(2,"0")}-01`;const ld=new Date(now.getFullYear(),now.getMonth(),0);hasta=ld.toLocaleDateString("es-CL",{timeZone:"America/Santiago"}).split("/").reverse().join("-");}
+  else{desde="2020-01-01";}
+  const inR=arr=>arr.filter(x=>x.date>=desde&&x.date<=hasta);
+  const conteos=inR(state.conteos).filter(c=>cType(c)==="dropoff");
+  const conteoPU=inR(state.conteos).filter(c=>cType(c)==="pickup");
+  const colectas=inR(state.colectas);
+  const sacas=inR(state.sacas).filter(s=>s.closedAt);
+  const totalConteo=sum(conteos,c=>c.count);
+  const totalPU=sum(conteoPU,c=>c.count);
+  const totalColecta=sum(colectas,c=>c.count);
+  const sacaAsig=sum(sacas,s=>s.assigned),sacaEnt=sum(sacas,s=>s.delivered),sacaFail=sum(sacas,s=>s.failed);
+  const willPct=sacaAsig>0?Math.round((sacaEnt/sacaAsig)*100):null;
+  const carrierData=Object.entries(CARRIERS).map(([k,c])=>({k,c,dropoff:sum(conteos.filter(x=>x.carrier===k),x=>x.count),pickup:sum(conteoPU.filter(x=>x.carrier===k),x=>x.count),colecta:sum(colectas.filter(x=>x.carrier===k),x=>x.count)}));
+  const inRTS=arr=>arr.filter(o=>{const d=new Date(o.createdAt),ds=parseD(desde),de=parseD(hasta);de.setHours(23,59,59);return d>=ds&&d<=de;});
+  const tfOrds=inRTS(state.hubOrders||[]),tfNeto=sum(tfOrds,o=>o.pricePerPkg*o.packages.length);
+  document.getElementById("panel-reporte").innerHTML=`
+<div class="ctx"><span style="font-size:16px;">📈</span><div><div class="ctx-title">Reportes y métricas</div><div class="ctx-sub">Volumen y rendimiento por período</div></div><span class="ctx-pill cp-blue">${periodos.find(p=>p.id===reportePeriod)?.label||"Período"}</span></div>
+<div class="period-bar">${periodos.map(p=>`<button class="pchip ${reportePeriod===p.id?"active":""}" onclick="setPeriod('${p.id}')">${p.label}</button>`).join("")}</div>
+<div class="kpi-row">
+  <div class="kpi"><div class="kn" style="color:${C.blue};">${totalConteo}</div><div class="kl">Drop Off</div><div class="ks">listos para colecta</div></div>
+  <div class="kpi"><div class="kn" style="color:${C.teal};">${totalPU}</div><div class="kl">Pick Up</div><div class="ks">clientes retiraron</div></div>
+  <div class="kpi"><div class="kn" style="color:${willPct===100?C.limeD:willPct!==null?C.amber:C.muted};">${willPct!==null?willPct+"%":"—"}</div><div class="kl">Tasa Will</div><div class="ks">entrega período</div></div>
+  <div class="kpi"><div class="kn" style="color:${C.pink};">${tfOrds.length}</div><div class="kl">Turbo &amp; Flex</div><div class="ks">${fmtCLP(tfNeto)} neto</div></div>
+</div>
+<div class="card"><div class="st">Desglose por transportista</div>
+<table class="tbl"><thead><tr><th>Transportista</th><th>Drop Off</th><th>Pick Up</th><th>Colecta</th><th>Diferencia</th></tr></thead><tbody>
+${carrierData.map(({k,c,dropoff,pickup,colecta})=>`<tr>
+  <td>${cb(k)} ${c.name}</td>
+  <td><strong style="font-family:'Fraunces',serif;font-size:18px;">${dropoff||"—"}</strong></td>
+  <td><strong style="font-family:'Fraunces',serif;font-size:18px;color:${C.teal};">${pickup||"—"}</strong></td>
+  <td><strong style="font-family:'Fraunces',serif;font-size:18px;color:${C.green};">${colecta}</strong></td>
+  <td style="color:${dropoff-colecta>0?C.amber:C.muted};font-weight:700;">${dropoff-colecta>0?"+"+(dropoff-colecta):"✓"}</td>
+</tr>`).join("")}
+<tr style="background:#F8F8F6;border-top:2px solid #0A0A0B;">
+  <td><strong>TOTAL</strong></td>
+  <td><strong style="font-family:'Fraunces',serif;font-size:20px;">${totalConteo}</strong></td>
+  <td><strong style="font-family:'Fraunces',serif;font-size:20px;color:${C.teal};">${totalPU}</strong></td>
+  <td><strong style="font-family:'Fraunces',serif;font-size:20px;color:${C.green};">${totalColecta}</strong></td>
+  <td></td>
+</tr></tbody></table></div>
+<div class="card"><div class="st">Rendimiento Will — período</div><div style="display:flex;gap:24px;flex-wrap:wrap;">
+  <div><div style="font-family:'Fraunces',serif;font-size:42px;font-weight:900;color:${C.amber};">${sacaAsig}</div><div style="font-size:13px;color:#666;font-weight:700;">Asignados</div></div>
+  <div><div style="font-family:'Fraunces',serif;font-size:42px;font-weight:900;color:${C.green};">${sacaEnt}</div><div style="font-size:13px;color:#666;font-weight:700;">Entregados</div></div>
+  <div><div style="font-family:'Fraunces',serif;font-size:42px;font-weight:900;color:${C.red};">${sacaFail}</div><div style="font-size:13px;color:#666;font-weight:700;">Fallidos</div></div>
+  <div><div style="font-family:'Fraunces',serif;font-size:42px;font-weight:900;color:${willPct===100?C.limeD:C.amber};">${willPct!==null?willPct+"%":"—"}</div><div style="font-size:13px;color:#666;font-weight:700;">Tasa período</div></div>
+</div></div>
+<div class="card"><div class="st">Turbo &amp; Flex — período</div><div style="display:flex;gap:24px;flex-wrap:wrap;">
+  <div><div style="font-family:'Fraunces',serif;font-size:42px;font-weight:900;color:${C.blue};">${tfOrds.filter(o=>o.type==="turbo").length}</div><div style="font-size:13px;color:#666;font-weight:700;">⚡ Órdenes Turbo</div></div>
+  <div><div style="font-family:'Fraunces',serif;font-size:42px;font-weight:900;color:${C.purple};">${tfOrds.filter(o=>o.type==="flex").length}</div><div style="font-size:13px;color:#666;font-weight:700;">📅 Órdenes Flex</div></div>
+  <div><div style="font-family:'Fraunces',serif;font-size:28px;font-weight:900;color:${C.pink};">${fmtCLP(tfNeto)}</div><div style="font-size:13px;color:#666;font-weight:700;">Neto facturado</div></div>
+</div></div>`;}
+function setPeriod(p){reportePeriod=p;renderAll();}
+
+document.getElementById("hdr-date").textContent=new Date().toLocaleDateString("es-CL",{weekday:"long",day:"numeric",month:"long"});
+load();
+renderAll();
+// Delegated events for dynamically rendered buttons
+document.addEventListener("click",function(e){
+  // Saca pasada day pills
+  const spBtn=e.target.closest(".sp-day-btn");
+  if(spBtn){sacaPasadaDate=spBtn.dataset.date;renderAll();return;}
+});
+document.addEventListener("change",function(e){
+  if(e.target.id==="sp-date-inp"){sacaPasadaDate=e.target.value;renderAll();}
+});
+</script>
+</body>
+</html>
