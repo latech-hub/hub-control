@@ -1,0 +1,12 @@
+[build]
+  publish = "."
+
+[[redirects]]
+  from = "/"
+  to = "/hub-control.html"
+  status = 200
+
+[[redirects]]
+  from = "/scanner"
+  to = "/hub-scanner.html"
+  status = 200
