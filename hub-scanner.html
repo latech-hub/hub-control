@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Hub Scanner — LaTech</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{background:#F5F4F0;font-family:'Outfit',sans-serif;min-height:100vh;color:#0A0A0B;}
+button,input,select{font-family:inherit;}
+.hidden{display:none!important;}
+
+/* HEADER */
+.hdr{background:#0A0A0B;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;}
+.hdr-logo{font-family:'Fraunces',serif;font-size:18px;font-weight:900;color:white;letter-spacing:-0.02em;}
+.hdr-logo span{color:#C8FF00;}
+.hdr-status{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;background:#1a1a1a;color:#888;}
+.hdr-status.ok{background:#1a3a00;color:#C8FF00;}
+.hdr-status.err{background:#3a0000;color:#FF4444;}
+
+/* MAIN */
+.main{padding:16px;}
+
+/* STEP CARD */
+.step-card{background:white;border:2px solid #0A0A0B;border-radius:16px;padding:20px;margin-bottom:14px;box-shadow:3px 3px 0 #0A0A0B;}
+.step-num{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#888;margin-bottom:8px;}
+.step-title{font-family:'Fraunces',serif;font-size:20px;font-weight:700;margin-bottom:14px;}
+
+/* CLIENTE SELECTOR */
+.client-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.client-btn{background:white;border:2.5px solid #DDD;border-radius:12px;padding:14px 10px;text-align:center;cursor:pointer;transition:all .15s;-webkit-appearance:none;}
+.client-btn.active{border-color:#0057FF;background:#EFF5FF;box-shadow:0 0 0 3px #0057FF30;}
+.client-name{font-size:14px;font-weight:800;margin-top:6px;}
+.client-sub{font-size:11px;color:#888;margin-top:2px;}
+.client-ico{font-size:26px;}
+
+/* TIPO SELECTOR */
+.tipo-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.tipo-btn{background:white;border:2.5px solid #DDD;border-radius:12px;padding:16px 12px;text-align:center;cursor:pointer;transition:all .15s;-webkit-appearance:none;}
+.tipo-btn.turbo.active{border-color:#0057FF;background:#EFF5FF;box-shadow:0 0 0 3px #0057FF30;}
+.tipo-btn.flex.active{border-color:#8B5CF6;background:#F5F0FF;box-shadow:0 0 0 3px #8B5CF630;}
+.tipo-ico{font-size:28px;}
+.tipo-name{font-family:'Fraunces',serif;font-size:18px;font-weight:900;margin-top:6px;}
+.tipo-desc{font-size:11px;color:#888;margin-top:3px;}
+.tipo-price{font-size:13px;font-weight:700;margin-top:6px;}
+
+/* FLEX DATE */
+.flex-date-wrap{margin-top:12px;display:none;}
+.flex-date-wrap.show{display:block;}
+.date-inp{width:100%;border:2px solid #0A0A0B;border-radius:10px;padding:12px 16px;font-size:16px;font-weight:700;font-family:'Outfit',sans-serif;outline:none;background:white;}
+
+/* SCANNER */
+.scan-area{position:relative;}
+.scan-inp{width:100%;border:3px solid #0057FF;border-radius:12px;padding:16px 50px 16px 18px;font-family:'Fraunces',serif;font-size:28px;font-weight:700;outline:none;color:#0A0A0B;background:white;-webkit-appearance:none;}
+.scan-inp::placeholder{color:#CCC;font-size:22px;}
+.scan-ico{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:22px;color:#0057FF;}
+
+/* PKG LIST */
+.pkg-list{margin-top:12px;display:flex;flex-direction:column;gap:6px;}
+.pkg-item{background:#F0EEE8;border:2px solid #0A0A0B;border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;}
+.pkg-code{font-family:'Fraunces',serif;font-size:15px;font-weight:700;}
+.pkg-idx{font-size:11px;color:#888;font-weight:700;}
+.pkg-del{background:none;border:none;color:#E63946;font-size:18px;cursor:pointer;padding:0;width:32px;height:32px;display:flex;align-items:center;justify-content:center;}
+
+/* RESUMEN */
+.resumen-box{background:#F0EEE8;border:2px solid #0A0A0B;border-radius:12px;padding:16px;margin-bottom:14px;}
+.res-row{display:flex;justify-content:space-between;align-items:center;font-size:15px;margin-bottom:8px;}
+.res-row:last-child{margin-bottom:0;border-top:2px solid #0A0A0B;padding-top:10px;margin-top:4px;}
+.res-label{color:#666;}
+.res-val{font-weight:700;}
+.res-total{font-family:'Fraunces',serif;font-size:24px;font-weight:900;color:#0057FF;}
+
+/* SUBMIT BTN */
+.submit-btn{width:100%;padding:18px;font-size:17px;font-weight:800;border:2.5px solid #0A0A0B;border-radius:14px;cursor:pointer;box-shadow:3px 3px 0 #0A0A0B;transition:all .15s;-webkit-appearance:none;}
+.submit-btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #0A0A0B;}
+.submit-btn.turbo{background:#0057FF;color:white;}
+.submit-btn.flex{background:#8B5CF6;color:white;}
+.submit-btn:disabled{background:#DDD;border-color:#CCC;color:#999;box-shadow:none;cursor:not-allowed;}
+
+/* SUCCESS */
+.success-wrap{text-align:center;padding:40px 20px;}
+.success-ico{width:80px;height:80px;border-radius:50%;background:#E6FFB2;border:3px solid #C8FF00;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 20px;}
+.success-title{font-family:'Fraunces',serif;font-size:28px;font-weight:900;color:#2D5A00;margin-bottom:8px;}
+.success-sub{font-size:15px;color:#666;margin-bottom:6px;}
+.success-id{font-size:12px;color:#AAA;font-family:monospace;margin-bottom:28px;}
+.new-btn{background:#0A0A0B;color:white;border:2.5px solid #0A0A0B;border-radius:14px;padding:16px 32px;font-size:16px;font-weight:800;cursor:pointer;box-shadow:3px 3px 0 #444;-webkit-appearance:none;}
+
+/* BADGES */
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:800;}
+.badge-turbo{background:#EFF5FF;color:#0057FF;}
+.badge-flex{background:#F5F0FF;color:#8B5CF6;}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#0A0A0B;color:white;border-radius:12px;padding:12px 22px;font-size:14px;font-weight:700;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;border-left:4px solid #C8FF00;z-index:999;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* NO CLIENTES */
+.no-clients{text-align:center;padding:32px;color:#888;}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-logo">LA TECH <span>HUB</span></div>
+  <div class="hdr-status" id="conn-status">Conectando...</div>
+</div>
+
+<div class="main">
+
+  <!-- PANTALLA PRINCIPAL -->
+  <div id="screen-main">
+
+    <!-- PASO 1: CLIENTE -->
+    <div class="step-card">
+      <div class="step-num">Paso 1 de 3</div>
+      <div class="step-title">¿De qué cliente es?</div>
+      <div class="client-grid" id="client-grid">
+        <div class="no-clients">Cargando clientes...</div>
+      </div>
+    </div>
+
+    <!-- PASO 2: TIPO -->
+    <div class="step-card">
+      <div class="step-num">Paso 2 de 3</div>
+      <div class="step-title">Tipo de servicio</div>
+      <div class="tipo-grid">
+        <button class="tipo-btn turbo" id="btn-turbo" onclick="selTipo('turbo')">
+          <div class="tipo-ico">⚡</div>
+          <div class="tipo-name" style="color:#0057FF;">TURBO</div>
+          <div class="tipo-desc">Express 2–3 hrs</div>
+          <div class="tipo-price" style="color:#0057FF;" id="price-turbo">$4.490/paq</div>
+        </button>
+        <button class="tipo-btn flex" id="btn-flex" onclick="selTipo('flex')">
+          <div class="tipo-ico">📅</div>
+          <div class="tipo-name" style="color:#8B5CF6;">FLEX</div>
+          <div class="tipo-desc">Programado</div>
+          <div class="tipo-price" style="color:#8B5CF6;" id="price-flex">$3.490/paq</div>
+        </button>
+      </div>
+      <div class="flex-date-wrap" id="flex-date-wrap">
+        <div style="font-size:13px;font-weight:700;color:#555;margin-bottom:6px;">📅 Fecha de entrega programada</div>
+        <input type="date" class="date-inp" id="flex-date">
+      </div>
+    </div>
+
+    <!-- PASO 3: ESCANEO -->
+    <div class="step-card">
+      <div class="step-num">Paso 3 de 3</div>
+      <div class="step-title">Escanear paquetes <span id="scan-count" style="color:#0057FF;"></span></div>
+      <div class="scan-area">
+        <input id="scan-inp" type="text" class="scan-inp" placeholder="Código del paquete..." autocomplete="off" autocorrect="off" spellcheck="false" autocapitalize="off">
+        <span class="scan-ico">⊡</span>
+      </div>
+      <div style="font-size:13px;color:#888;margin-top:6px;">Escanea o escribe el código y presiona Enter</div>
+      <div class="pkg-list" id="pkg-list"></div>
+    </div>
+
+    <!-- RESUMEN Y ENVÍO -->
+    <div id="resumen-wrap" class="hidden">
+      <div class="resumen-box" id="resumen-box"></div>
+      <button class="submit-btn" id="submit-btn" onclick="submitOrden()">Registrar orden</button>
+    </div>
+
+  </div>
+
+  <!-- PANTALLA ÉXITO -->
+  <div id="screen-success" class="hidden">
+    <div class="success-wrap">
+      <div class="success-ico">✓</div>
+      <div class="success-title">¡Orden registrada!</div>
+      <div class="success-sub" id="success-sub"></div>
+      <div class="success-id" id="success-id"></div>
+      <button class="new-btn" onclick="resetForm()">+ Nueva orden</button>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<!-- FIREBASE SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, onSnapshot, doc, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCnMwEmYvdnPksMLfY_pfPQN75OmV-FFVg",
+  authDomain: "latech-hub.firebaseapp.com",
+  projectId: "latech-hub",
+  storageBucket: "latech-hub.firebasestorage.app",
+  messagingSenderId: "964698742567",
+  appId: "1:964698742567:web:bfa013b9108f9f212c9302"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ── ESTADO ──────────────────────────────────────────────
+const TARIFA = { turbo: 4490, flex: 3490, promo: 2990 };
+let selClient = null;
+let selTipoVal = null;
+let pkgs = [];
+let flexDate = '';
+let clients = [];
+
+// ── UTILS ────────────────────────────────────────────────
+const todayStr = () => {
+  return new Date().toLocaleDateString("es-CL", {timeZone:"America/Santiago"})
+    .split("/").reverse().join("-");
+};
+const fmtCLP = n => "$" + Number(Math.round(n)).toLocaleString("es-CL");
+const genId = () => "ORD-" + Date.now() + "-" + Math.random().toString(36).slice(2,4).toUpperCase();
+
+let toastTimer;
+function toast(msg, color="#C8FF00") {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.style.borderLeftColor = color;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 3000);
+}
+
+// ── CONEXIÓN FIREBASE ────────────────────────────────────
+function setStatus(ok) {
+  const el = document.getElementById("conn-status");
+  if (ok) { el.textContent = "● Conectado"; el.className = "hdr-status ok"; }
+  else     { el.textContent = "● Sin conexión"; el.className = "hdr-status err"; }
+}
+
+// ── CARGAR CLIENTES ──────────────────────────────────────
+async function loadClients() {
+  try {
+    const snap = await getDocs(collection(db, "clientes"));
+    clients = [];
+    snap.forEach(d => clients.push({ id: d.id, ...d.data() }));
+    setStatus(true);
+    renderClients();
+  } catch(e) {
+    setStatus(false);
+    document.getElementById("client-grid").innerHTML =
+      '<div class="no-clients">Error al cargar clientes.<br>Verifica conexión.</div>';
+  }
+}
+
+function renderClients() {
+  const grid = document.getElementById("client-grid");
+  if (!clients.length) {
+    grid.innerHTML = '<div class="no-clients">Sin clientes registrados.<br>Agrégalos desde el Hub Control.</div>';
+    return;
+  }
+  grid.innerHTML = clients.map(c => {
+    const isP = c.isPromo && c.promoUntil && Date.now() < c.promoUntil;
+    return `<button class="client-btn" id="cli-${c.id}" onclick="selClient_fn('${c.id}')">
+      <div class="client-ico">🏪</div>
+      <div class="client-name">${c.name}${isP?' 🟢':''}</div>
+      <div class="client-sub">${c.rut||'Sin RUT'}</div>
+    </button>`;
+  }).join('');
+}
+
+// ── SELECCIONAR CLIENTE ───────────────────────────────────
+window.selClient_fn = function(id) {
+  selClient = clients.find(c => c.id === id);
+  document.querySelectorAll('.client-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('cli-' + id)?.classList.add('active');
+  updatePrice();
+  updateResumen();
+  toast('Cliente: ' + selClient.name);
+};
+
+// ── SELECCIONAR TIPO ──────────────────────────────────────
+window.selTipo = function(tipo) {
+  selTipoVal = tipo;
+  document.getElementById('btn-turbo').classList.toggle('active', tipo === 'turbo');
+  document.getElementById('btn-flex').classList.toggle('active', tipo === 'flex');
+  const fdw = document.getElementById('flex-date-wrap');
+  fdw.classList.toggle('show', tipo === 'flex');
+  if (tipo === 'flex') {
+    const fd = document.getElementById('flex-date');
+    if (!fd.value) fd.value = todayStr();
+    flexDate = fd.value;
+    fd.onchange = () => { flexDate = fd.value; updateResumen(); };
+    setTimeout(() => document.getElementById('scan-inp').focus(), 100);
+  } else {
+    setTimeout(() => document.getElementById('scan-inp').focus(), 100);
+  }
+  updateResumen();
+  toast(tipo === 'turbo' ? '⚡ Turbo seleccionado' : '📅 Flex seleccionado');
+};
+
+function getPrice() {
+  if (!selClient) return selTipoVal === 'turbo' ? TARIFA.turbo : TARIFA.flex;
+  const isP = selClient.isPromo && selClient.promoUntil && Date.now() < selClient.promoUntil;
+  if (isP) return TARIFA.promo;
+  return selTipoVal === 'turbo' ? TARIFA.turbo : TARIFA.flex;
+}
+
+function updatePrice() {
+  if (!selClient) return;
+  const isP = selClient.isPromo && selClient.promoUntil && Date.now() < selClient.promoUntil;
+  document.getElementById('price-flex').textContent = isP ?
+    fmtCLP(TARIFA.promo) + '/paq 🟢' : fmtCLP(TARIFA.flex) + '/paq';
+}
+
+// ── SCANNER ───────────────────────────────────────────────
+document.getElementById('scan-inp').addEventListener('keydown', function(e) {
+  if (e.key !== 'Enter') return;
+  const val = this.value.trim();
+  if (!val) return;
+  if (pkgs.includes(val)) { toast('⚠️ Código ya escaneado', '#F59E0B'); this.value=''; return; }
+  pkgs.push(val);
+  this.value = '';
+  renderPkgs();
+  updateResumen();
+  toast('✓ Paquete agregado', '#22C55E');
+  e.preventDefault();
+});
+
+window.removePkg = function(idx) {
+  pkgs.splice(idx, 1);
+  renderPkgs();
+  updateResumen();
+};
+
+function renderPkgs() {
+  const list = document.getElementById('pkg-list');
+  const count = document.getElementById('scan-count');
+  count.textContent = pkgs.length ? '(' + pkgs.length + ')' : '';
+  list.innerHTML = pkgs.map((p, i) => `
+    <div class="pkg-item">
+      <div>
+        <div class="pkg-code">${p}</div>
+        <div class="pkg-idx">#${i+1}</div>
+      </div>
+      <button class="pkg-del" onclick="removePkg(${i})">✕</button>
+    </div>
+  `).join('');
+}
+
+function updateResumen() {
+  const wrap = document.getElementById('resumen-wrap');
+  const box = document.getElementById('resumen-box');
+  const btn = document.getElementById('submit-btn');
+
+  if (!selClient || !selTipoVal || !pkgs.length) {
+    wrap.classList.add('hidden');
+    return;
+  }
+
+  wrap.classList.remove('hidden');
+  const price = getPrice();
+  const total = price * pkgs.length;
+  const isP = selClient.isPromo && selClient.promoUntil && Date.now() < selClient.promoUntil;
+
+  box.innerHTML = `
+    <div class="res-row"><span class="res-label">Cliente</span><span class="res-val">${selClient.name}</span></div>
+    <div class="res-row"><span class="res-label">Tipo</span><span class="res-val"><span class="badge badge-${selTipoVal}">${selTipoVal==='turbo'?'⚡ TURBO':'📅 FLEX'}</span></span></div>
+    ${selTipoVal==='flex' ? `<div class="res-row"><span class="res-label">Fecha entrega</span><span class="res-val">${flexDate||todayStr()}</span></div>` : ''}
+    <div class="res-row"><span class="res-label">Paquetes</span><span class="res-val">${pkgs.length}</span></div>
+    <div class="res-row"><span class="res-label">Precio/paq</span><span class="res-val">${fmtCLP(price)}${isP?' 🟢':''}</span></div>
+    <div class="res-row"><span class="res-label" style="font-weight:700;">Total neto</span><span class="res-total">${fmtCLP(total)}</span></div>
+  `;
+
+  btn.className = 'submit-btn ' + selTipoVal;
+  btn.textContent = selTipoVal === 'turbo' ? '⚡ Registrar Orden Turbo' : '📅 Registrar Orden Flex';
+}
+
+// ── ENVIAR ORDEN ──────────────────────────────────────────
+window.submitOrden = async function() {
+  if (!selClient || !selTipoVal || !pkgs.length) return;
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+
+  const price = getPrice();
+  const ordId = genId();
+  const hoy = todayStr();
+
+  const orden = {
+    id: ordId,
+    type: selTipoVal,
+    clientId: selClient.id,
+    clientName: selClient.name,
+    packages: [...pkgs],
+    status: selTipoVal === 'turbo' ? 'Recibido en Hub' : 'Entregado',
+    pricePerPkg: price,
+    scheduledDate: selTipoVal === 'flex' ? (flexDate || hoy) : null,
+    notes: '',
+    createdAt: Date.now(),
+    createdAtServer: serverTimestamp(),
+    statusHistory: [{ status: selTipoVal === 'turbo' ? 'Recibido en Hub' : 'Entregado', ts: Date.now() }],
+    source: 'scanner'
+  };
+
+  try {
+    await addDoc(collection(db, "ordenes"), orden);
+    setStatus(true);
+
+    // MOSTRAR ÉXITO
+    document.getElementById('success-sub').textContent =
+      selClient.name + ' · ' + pkgs.length + ' paq · ' + fmtCLP(price * pkgs.length) + ' neto';
+    document.getElementById('success-id').textContent = ordId;
+    document.getElementById('screen-main').classList.add('hidden');
+    document.getElementById('screen-success').classList.remove('hidden');
+
+  } catch(e) {
+    setStatus(false);
+    toast('❌ Error al guardar. Intenta de nuevo.', '#E63946');
+    btn.disabled = false;
+    btn.textContent = selTipoVal === 'turbo' ? '⚡ Registrar Orden Turbo' : '📅 Registrar Orden Flex';
+  }
+};
+
+// ── RESET ─────────────────────────────────────────────────
+window.resetForm = function() {
+  selClient = null;
+  selTipoVal = null;
+  pkgs = [];
+  flexDate = '';
+  document.querySelectorAll('.client-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tipo-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('flex-date-wrap').classList.remove('show');
+  document.getElementById('pkg-list').innerHTML = '';
+  document.getElementById('scan-count').textContent = '';
+  document.getElementById('scan-inp').value = '';
+  document.getElementById('resumen-wrap').classList.add('hidden');
+  document.getElementById('screen-main').classList.remove('hidden');
+  document.getElementById('screen-success').classList.add('hidden');
+  setTimeout(() => window.scrollTo(0,0), 100);
+};
+
+// ── INIT ──────────────────────────────────────────────────
+loadClients();
+document.getElementById('flex-date').value = todayStr();
+
+</script>
+</body>
+</html>
