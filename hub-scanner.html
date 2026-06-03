@@ -233,17 +233,28 @@ function setStatus(ok) {
 
 // ── CARGAR CLIENTES ──────────────────────────────────────
 async function loadClients() {
+  // Leer clientes del localStorage del hub (misma clave que el hub-control)
   try {
-    const snap = await getDocs(collection(db, "clientes"));
-    clients = [];
-    snap.forEach(d => clients.push({ id: d.id, ...d.data() }));
+    const raw = localStorage.getItem("latech-hub-v4");
+    if (raw) {
+      const state = JSON.parse(raw);
+      clients = state.hubClients || [];
+    }
+  } catch(e) {}
+
+  // Si no hay en localStorage, intentar Firebase
+  if (!clients.length) {
+    try {
+      const snap = await getDocs(collection(db, "clientes"));
+      snap.forEach(d => clients.push({ id: d.id, ...d.data() }));
+      setStatus(true);
+    } catch(e) {
+      setStatus(false);
+    }
+  } else {
     setStatus(true);
-    renderClients();
-  } catch(e) {
-    setStatus(false);
-    document.getElementById("client-grid").innerHTML =
-      '<div class="no-clients">Error al cargar clientes.<br>Verifica conexión.</div>';
   }
+  renderClients();
 }
 
 function renderClients() {
@@ -397,8 +408,17 @@ window.submitOrden = async function() {
   };
 
   try {
-    await addDoc(collection(db, "ordenes"), orden);
-    setStatus(true);
+    // Guardar en localStorage del hub (misma clave)
+    try {
+      const raw = localStorage.getItem("latech-hub-v4");
+      const state = raw ? JSON.parse(raw) : {conteos:[],colectas:[],sacas:[],hubClients:[],hubOrders:[],hubPayments:{}};
+      state.hubOrders = state.hubOrders || [];
+      state.hubOrders.push(orden);
+      localStorage.setItem("latech-hub-v4", JSON.stringify(state));
+    } catch(e) {}
+    
+    // También intentar Firebase
+    try { await addDoc(collection(db, "ordenes"), orden); setStatus(true); } catch(e) {}
 
     // MOSTRAR ÉXITO
     document.getElementById('success-sub').textContent =
