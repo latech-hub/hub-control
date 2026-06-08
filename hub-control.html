@@ -153,12 +153,15 @@ button,input,select,textarea{font-family:inherit;}
 @media(max-width:620px){.carrier-grid{grid-template-columns:1fr;}.kpi{min-width:calc(50% - 8px);}.kn{font-size:36px;}.will-pct{font-size:44px;}.wk{min-width:64px;}.svc-grid{grid-template-columns:1fr 1fr;}}
 @media print{.no-print{display:none!important;}body{background:white;}.card,.kpi,.ccard,.will-wrap{box-shadow:none!important;}}
 </style>
+<!-- Firebase SDK (CDN compat — funciona con doble clic, sin npm) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
 <div id="app">
   <div class="hdr no-print">
     <div><div class="logo">LA TECH <span>HUB</span></div><div class="hdr-sub">Centro de Envíos · Las Condes, Santiago</div></div>
-    <div class="hdr-right"><div class="hdr-date" id="hdr-date"></div><button class="hdr-btn" onclick="openSync()">🔄 Sync</button></div>
+    <div class="hdr-right"><div class="hdr-date" id="hdr-date"></div><div id="fb-status" style="font-size:12px;font-weight:700;padding:5px 10px;border:1.5px solid #DDD;border-radius:8px;white-space:nowrap;cursor:default;"><span style="color:#888;">●</span> ...</div><button class="hdr-btn" onclick="openSync()">🔄 Sync</button></div>
   </div>
   <div class="tabs no-print">
     <button class="tab active" data-tab="dashboard" onclick="st('dashboard')">📊 Dashboard</button>
@@ -192,8 +195,9 @@ button,input,select,textarea{font-family:inherit;}
   </div>
 </div>
 <script>
-// Preload — must run before load()
+// Preload DESACTIVADO — Firebase es ahora la fuente de datos.
 (function(){
+  if(true) return; // ← desactivado intencionalmente
   var SK='latech-hub-v4';
   var existing=localStorage.getItem(SK);
   if(!existing||existing==='null'||existing==='undefined'){
@@ -206,19 +210,91 @@ const CARRIERS={ml:{name:"Mercado Libre",short:"ML",cls:"ml",color:"#E6A800",has
 const C={blue:"#0057FF",green:"#22C55E",amber:"#F59E0B",red:"#E63946",purple:"#8B5CF6",lime:"#C8FF00",pink:"#C0007A",ink:"#0A0A0B",muted:"#888",limeD:"#2D5A00",teal:"#00897B"};
 const SK="latech-hub-v4";
 let state={conteos:[],colectas:[],sacas:[],hubClients:[],hubOrders:[],hubPayments:{}};
-const todayStr=()=>new Date().toLocaleDateString("es-CL",{timeZone:"America/Santiago"}).split("/").reverse().join("-");
+const ymd=d=>new Date(d).toLocaleDateString("en-CA",{timeZone:"America/Santiago"});
+const todayStr=()=>ymd(new Date());
 const genId=()=>"id_"+Date.now()+"_"+Math.random().toString(36).slice(2,5);
 const cType=x=>x.type||"dropoff";
-const parseD=d=>{const[y,m,day]=d.split("-");return new Date(+y,+m-1,+day);};
+const parseD=d=>{if(!d||typeof d!=="string"){const t=new Date();return new Date(t.getFullYear(),t.getMonth(),t.getDate(),12,0,0);}const p=d.split("-");const y=+p[0],m=+p[1],day=+p[2];if(!y||y<2000||!m||!day){const t=new Date();return new Date(t.getFullYear(),t.getMonth(),t.getDate(),12,0,0);}return new Date(y,m-1,day,12,0,0);};
 const fmtD=d=>parseD(d).toLocaleDateString("es-CL",{day:"2-digit",month:"short"});
 const fmtDL=d=>parseD(d).toLocaleDateString("es-CL",{day:"2-digit",month:"long",year:"numeric"});
-const dateRange=n=>Array.from({length:n},(_,i)=>{const d=new Date();d.setDate(d.getDate()-(n-1-i));return d.toLocaleDateString("es-CL",{timeZone:"America/Santiago"}).split("/").reverse().join("-");});
+const dateRange=n=>Array.from({length:n},(_,i)=>{const d=new Date();d.setDate(d.getDate()-(n-1-i));return ymd(d);});
 const sum=(arr,fn)=>arr.reduce((a,b)=>a+(fn(b)||0),0);
 const cb=c=>`<span class="cb ${CARRIERS[c]?.cls||""}">${CARRIERS[c]?.short||c}</span>`;
 const fmtCLP=n=>"$"+Number(Math.round(n)).toLocaleString("es-CL");
 const fmtTS=ts=>new Date(ts).toLocaleString("es-CL",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
-function load(){try{const s=localStorage.getItem(SK);if(s)state=JSON.parse(s);}catch(e){}state.conteos=state.conteos||[];state.colectas=state.colectas||[];state.sacas=state.sacas||[];state.hubClients=state.hubClients||[];state.hubOrders=state.hubOrders||[];state.hubPayments=state.hubPayments||{};}
-function save(){try{localStorage.setItem(SK,JSON.stringify(state));}catch(e){}}
+// ═══ FIREBASE — datos compartidos en la nube ═══════════════
+const FB_CONFIG={apiKey:"AIzaSyCnMwEmYvdnPksMLfY_pfPQN75OmV-FFVg",authDomain:"latech-hub.firebaseapp.com",projectId:"latech-hub",storageBucket:"latech-hub.firebasestorage.app",messagingSenderId:"964698742567",appId:"1:964698742567:web:bfa013b9108f9f212c9302"};
+let fbDB=null, fbOK=false, fbSaving=false, fbWriteTimer=null;
+const FB_DOC=()=>fbDB.collection("hub").doc("state_v4");
+function fbInit(){
+  try{
+    if(typeof firebase==="undefined"){fbSetStatus(false,"SDK no cargó");return false;}
+    firebase.initializeApp(FB_CONFIG);
+    fbDB=firebase.firestore();
+    fbOK=true;
+    return true;
+  }catch(e){fbSetStatus(false,"Error init");return false;}
+}
+function fbSetStatus(ok,msg){
+  fbOK=ok;
+  const el=document.getElementById("fb-status");
+  if(!el)return;
+  if(ok){el.innerHTML='<span style="color:#22C55E;">●</span> Nube';el.title="Conectado a Firebase — datos compartidos en tiempo real";}
+  else{el.innerHTML='<span style="color:#E63946;">●</span> Local';el.title="Sin nube ("+(msg||"modo local")+") — datos solo en este equipo";}
+}
+function normalizeState(s){
+  s=s||{};
+  s.conteos=s.conteos||[];s.colectas=s.colectas||[];s.sacas=s.sacas||[];
+  s.hubClients=s.hubClients||[];s.hubOrders=s.hubOrders||[];s.hubPayments=s.hubPayments||{};
+  return s;
+}
+// load(): arranca leyendo Firebase; si falla, usa localStorage.
+function load(){
+  // 1) Respaldo local inmediato (para que la app muestre algo al toque)
+  try{const s=localStorage.getItem(SK);if(s)state=normalizeState(JSON.parse(s));}catch(e){}
+  state=normalizeState(state);
+  // 2) Conectar Firebase y escuchar en tiempo real
+  if(fbInit()){
+    FB_DOC().onSnapshot(
+      snap=>{
+        if(fbSaving)return; // ignorar el eco de nuestra propia escritura
+        if(snap.exists){
+          const data=snap.data();
+          if(data&&data.json){
+            try{state=normalizeState(JSON.parse(data.json));}catch(e){}
+            try{localStorage.setItem(SK,JSON.stringify(state));}catch(e){}
+            fbSetStatus(true);
+            renderAll();
+          }
+        }else{
+          // No hay doc en la nube todavía.
+          fbSetStatus(true);
+          const local=(state.conteos.length+state.colectas.length+state.sacas.length+state.hubClients.length+state.hubOrders.length);
+          if(local>0){
+            save();
+            toast("☁️ Datos de este equipo subidos a la nube",C.green);
+          }
+          // Si no hay datos locales, NO subimos nada (evita borrar la nube con vacío)
+        }
+      },
+      err=>{fbSetStatus(false,"403/permisos");}
+    );
+    fbSetStatus(true);
+  }
+}
+// save(): escribe local YA, y a la nube con un pequeño retardo (anti-spam).
+function save(){
+  try{localStorage.setItem(SK,JSON.stringify(state));}catch(e){}
+  if(!fbOK||!fbDB)return;
+  clearTimeout(fbWriteTimer);
+  fbWriteTimer=setTimeout(()=>{
+    fbSaving=true;
+    FB_DOC().set({json:JSON.stringify(state),updatedAt:new Date().toISOString()})
+      .then(()=>{fbSetStatus(true);})
+      .catch(e=>{fbSetStatus(false,"error escritura");})
+      .finally(()=>{setTimeout(()=>{fbSaving=false;},400);});
+  },500);
+}
 let toastTimer;
 function toast(msg,color=C.blue){const t=document.getElementById("toast");t.textContent=msg;t.style.borderLeftColor=color;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),3000);}
 function st(id){document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));document.querySelector(`[data-tab="${id}"]`).classList.add("active");document.getElementById("panel-"+id).classList.add("active");renderAll();}
@@ -379,7 +455,7 @@ function tfCancelEdit(){tfEditOrdId=null;tfEditPkgs=[];renderAll();}
 function tfEditKD(e){if(e.key!=="Enter")return;const v=e.target.value.trim();if(!v)return;if(!tfEditPkgs.includes(v))tfEditPkgs.push(v);e.target.value="";e.preventDefault();renderAll();setTimeout(()=>{const s=document.getElementById("tf-edit-scan");if(s){s.removeEventListener("keydown",tfEditKD);s.addEventListener("keydown",tfEditKD);s.focus();}},40);}
 function tfRemEditPkg(code){tfEditPkgs=tfEditPkgs.filter(p=>p!==code);renderAll();}
 function tfSaveEdit(){if(!tfEditPkgs.length){toast("Debe haber al menos 1 paquete",C.amber);return;}const o=state.hubOrders.find(x=>x.id===tfEditOrdId);if(!o)return;const diff=tfEditPkgs.length-o.packages.length;o.packages=[...tfEditPkgs];o.editedAt=Date.now();if(diff!==0)o.statusHistory.push({status:`Paquetes editados (${tfEditPkgs.length} paq${diff>0?", +"+diff:", "+diff})`,ts:Date.now()});save();toast(`✅ Orden actualizada — ${tfEditPkgs.length} paquetes`,C.green);tfEditOrdId=null;tfEditPkgs=[];renderAll();}
-function tfActDateNav(delta){const d=parseD(tfActDate);d.setDate(d.getDate()+delta);tfActDate=d.toLocaleDateString("es-CL",{timeZone:"America/Santiago"}).split("/").reverse().join("-");renderAll();}
+function tfActDateNav(delta){const d=parseD(tfActDate);d.setDate(d.getDate()+delta);const yy=d.getFullYear(),mm=String(d.getMonth()+1).padStart(2,"0"),dd=String(d.getDate()).padStart(2,"0");tfActDate=yy+"-"+mm+"-"+dd;renderAll();}
 function tfTogExp(id){tfExp=tfExp===id?"":id;renderAll();}
 function tfAdv(id){const o=state.hubOrders.find(x=>x.id===id);if(!o)return;const flow=o.type==="turbo"?TF_TF:TF_FF,idx=flow.indexOf(o.status);if(idx<flow.length-1){o.status=flow[idx+1];o.statusHistory.push({status:o.status,ts:Date.now()});save();toast("→ "+o.status,C.green);renderAll();}}
 function tfFail(id){const o=state.hubOrders.find(x=>x.id===id);if(!o)return;o.status="No entregado";o.statusHistory.push({status:"No entregado",ts:Date.now()});save();toast("✗ No entregado",C.red);renderAll();}
@@ -400,7 +476,7 @@ function tfActivas(){
   const dateLabel=isToday?"Hoy":fmtDL(tfActDate);
   // Filter: for a date, show orders created that day OR (flex) scheduled that day
   const ordersForDate=(state.hubOrders||[]).filter(o=>{
-    const created=new Date(o.createdAt).toLocaleDateString("es-CL",{timeZone:"America/Santiago"}).split("/").reverse().join("-");
+    const created=ymd(o.createdAt);
     return created===tfActDate||(o.scheduledDate===tfActDate);
   });
   const active=ordersForDate.filter(o=>!TF_FINAL.includes(o.status));
@@ -513,10 +589,10 @@ function tfHistorial(){
   </div>`;
   if(wkOrds.length===0){return html+'<div class="empty">Sin órdenes en esta semana.</div>';}
   const allDays=[];const cur=new Date(start);
-  while(cur<=end){allDays.push(cur.toLocaleDateString("es-CL",{timeZone:"America/Santiago"}).split("/").reverse().join("-"));cur.setDate(cur.getDate()+1);}
+  while(cur<=end){allDays.push(ymd(cur));cur.setDate(cur.getDate()+1);}
   allDays.forEach(d=>{
     const dayOrds=wkOrds.filter(o=>{
-      const ref=o.type==="flex"&&o.scheduledDate?o.scheduledDate:new Date(o.createdAt).toLocaleDateString("es-CL",{timeZone:"America/Santiago"}).split("/").reverse().join("-");
+      const ref=o.type==="flex"&&o.scheduledDate?o.scheduledDate:ymd(o.createdAt);
       return ref===d;
     });
     if(!dayOrds.length)return;
@@ -558,7 +634,7 @@ function tfMarkEntregado(id){
 }
 
 let reportePeriod="month";
-function renderReporte(D){const periodos=[{id:"week",label:"Esta semana"},{id:"month",label:"Este mes"},{id:"prev",label:"Mes anterior"},{id:"all",label:"Todo el tiempo"}];const now=new Date();let desde,hasta=todayStr();if(reportePeriod==="week"){const d=new Date();d.setDate(d.getDate()-6);desde=d.toLocaleDateString("es-CL",{timeZone:"America/Santiago"}).split("/").reverse().join("-");}else if(reportePeriod==="month"){desde=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-01`;}else if(reportePeriod==="prev"){const pm=new Date(now.getFullYear(),now.getMonth()-1,1);desde=`${pm.getFullYear()}-${String(pm.getMonth()+1).padStart(2,"0")}-01`;const ld=new Date(now.getFullYear(),now.getMonth(),0);hasta=ld.toLocaleDateString("es-CL",{timeZone:"America/Santiago"}).split("/").reverse().join("-");}else{desde="2020-01-01";}const inR=arr=>arr.filter(x=>x.date>=desde&&x.date<=hasta);const conteos=inR(state.conteos),colectas=inR(state.colectas),sacas=inR(state.sacas).filter(s=>s.closedAt);const totalConteo=sum(conteos,c=>c.count),totalColecta=sum(colectas,c=>c.count);const sacaAsig=sum(sacas,s=>s.assigned),sacaEnt=sum(sacas,s=>s.delivered),sacaFail=sum(sacas,s=>s.failed);const willPct=sacaAsig>0?Math.round((sacaEnt/sacaAsig)*100):null;const carrierData=Object.entries(CARRIERS).map(([k,c])=>({k,c,conteo:sum(conteos.filter(x=>x.carrier===k),x=>x.count),colecta:sum(colectas.filter(x=>x.carrier===k),x=>x.count)}));const inRTS=arr=>arr.filter(o=>{const d=new Date(o.createdAt),ds=parseD(desde),de=parseD(hasta);de.setHours(23,59,59);return d>=ds&&d<=de;});const tfOrds=inRTS(state.hubOrders||[]),tfNeto=sum(tfOrds,o=>o.pricePerPkg*o.packages.length);document.getElementById("panel-reporte").innerHTML=`<div class="ctx"><span style="font-size:16px;">📈</span><div><div class="ctx-title">Reportes y métricas</div><div class="ctx-sub">Volumen y rendimiento por período</div></div><span class="ctx-pill cp-blue">${periodos.find(p=>p.id===reportePeriod)?.label||"Período"}</span></div><div class="period-bar">${periodos.map(p=>`<button class="pchip ${reportePeriod===p.id?"active":""}" onclick="setPeriod('${p.id}')">${p.label}</button>`).join("")}</div><div class="kpi-row"><div class="kpi"><div class="kn" style="color:${C.blue};">${totalConteo}</div><div class="kl">Paquetes registrados</div><div class="ks">conteo período</div></div><div class="kpi"><div class="kn" style="color:${C.green};">${totalColecta}</div><div class="kl">Paquetes salieron</div><div class="ks">confirmados colecta</div></div><div class="kpi"><div class="kn" style="color:${willPct===100?C.limeD:willPct!==null?C.amber:C.muted};">${willPct!==null?willPct+"%":"—"}</div><div class="kl">Tasa Will</div><div class="ks">entrega período</div></div><div class="kpi"><div class="kn" style="color:${C.pink};">${tfOrds.length}</div><div class="kl">Turbo &amp; Flex</div><div class="ks">${fmtCLP(tfNeto)} neto</div></div></div><div class="card"><div class="st">Desglose por transportista</div><table class="tbl"><thead><tr><th>Transportista</th><th>Registrados</th><th>Salieron</th><th>Diferencia</th></tr></thead><tbody>${carrierData.map(({k,c,conteo,colecta})=>`<tr><td>${cb(k)} ${c.name}</td><td><strong style="font-family:'Fraunces',serif;font-size:18px;">${conteo}</strong></td><td><strong style="font-family:'Fraunces',serif;font-size:18px;color:${C.green};">${colecta}</strong></td><td style="color:${conteo-colecta>0?C.amber:C.muted};font-weight:700;">${conteo-colecta>0?"+"+( conteo-colecta):"✓"}</td></tr>`).join("")}<tr style="background:#F8F8F6;border-top:2px solid #0A0A0B;"><td><strong>TOTAL</strong></td><td><strong style="font-family:'Fraunces',serif;font-size:20px;">${totalConteo}</strong></td><td><strong style="font-family:'Fraunces',serif;font-size:20px;color:${C.green};">${totalColecta}</strong></td><td></td></tr></tbody></table></div><div class="card"><div class="st">Rendimiento Will — período</div><div style="display:flex;gap:24px;flex-wrap:wrap;"><div><div style="font-family:'Fraunces',serif;font-size:42px;font-weight:900;color:${C.amber};">${sacaAsig}</div><div style="font-size:13px;color:#666;font-weight:700;">Asignados</div></div><div><div style="font-family:'Fraunces',serif;font-size:42px;font-weight:900;color:${C.green};">${sacaEnt}</div><div style="font-size:13px;color:#666;font-weight:700;">Entregados</div></div><div><div style="font-family:'Fraunces',serif;font-size:42px;font-weight:900;color:${C.red};">${sacaFail}</div><div style="font-size:13px;color:#666;font-weight:700;">Fallidos</div></div><div><div style="font-family:'Fraunces',serif;font-size:42px;font-weight:900;color:${willPct===100?C.limeD:C.amber};">${willPct!==null?willPct+"%":"—"}</div><div style="font-size:13px;color:#666;font-weight:700;">Tasa período</div></div></div></div><div class="card"><div class="st">Turbo &amp; Flex — período</div><div style="display:flex;gap:24px;flex-wrap:wrap;"><div><div style="font-family:'Fraunces',serif;font-size:42px;font-weight:900;color:${C.blue};">${tfOrds.filter(o=>o.type==="turbo").length}</div><div style="font-size:13px;color:#666;font-weight:700;">⚡ Órdenes Turbo</div></div><div><div style="font-family:'Fraunces',serif;font-size:42px;font-weight:900;color:${C.purple};">${tfOrds.filter(o=>o.type==="flex").length}</div><div style="font-size:13px;color:#666;font-weight:700;">📅 Órdenes Flex</div></div><div><div style="font-family:'Fraunces',serif;font-size:28px;font-weight:900;color:${C.pink};">${fmtCLP(tfNeto)}</div><div style="font-size:13px;color:#666;font-weight:700;">Neto facturado</div></div></div></div>`;}
+function renderReporte(D){const periodos=[{id:"week",label:"Esta semana"},{id:"month",label:"Este mes"},{id:"prev",label:"Mes anterior"},{id:"all",label:"Todo el tiempo"}];const now=new Date();let desde,hasta=todayStr();if(reportePeriod==="week"){const d=new Date();d.setDate(d.getDate()-6);desde=ymd(d);}else if(reportePeriod==="month"){desde=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-01`;}else if(reportePeriod==="prev"){const pm=new Date(now.getFullYear(),now.getMonth()-1,1);desde=`${pm.getFullYear()}-${String(pm.getMonth()+1).padStart(2,"0")}-01`;const ld=new Date(now.getFullYear(),now.getMonth(),0);hasta=ymd(ld);}else{desde="2020-01-01";}const inR=arr=>arr.filter(x=>x.date>=desde&&x.date<=hasta);const conteos=inR(state.conteos),colectas=inR(state.colectas),sacas=inR(state.sacas).filter(s=>s.closedAt);const totalConteo=sum(conteos,c=>c.count),totalColecta=sum(colectas,c=>c.count);const sacaAsig=sum(sacas,s=>s.assigned),sacaEnt=sum(sacas,s=>s.delivered),sacaFail=sum(sacas,s=>s.failed);const willPct=sacaAsig>0?Math.round((sacaEnt/sacaAsig)*100):null;const carrierData=Object.entries(CARRIERS).map(([k,c])=>({k,c,conteo:sum(conteos.filter(x=>x.carrier===k),x=>x.count),colecta:sum(colectas.filter(x=>x.carrier===k),x=>x.count)}));const inRTS=arr=>arr.filter(o=>{const d=new Date(o.createdAt),ds=parseD(desde),de=parseD(hasta);de.setHours(23,59,59);return d>=ds&&d<=de;});const tfOrds=inRTS(state.hubOrders||[]),tfNeto=sum(tfOrds,o=>o.pricePerPkg*o.packages.length);document.getElementById("panel-reporte").innerHTML=`<div class="ctx"><span style="font-size:16px;">📈</span><div><div class="ctx-title">Reportes y métricas</div><div class="ctx-sub">Volumen y rendimiento por período</div></div><span class="ctx-pill cp-blue">${periodos.find(p=>p.id===reportePeriod)?.label||"Período"}</span></div><div class="period-bar">${periodos.map(p=>`<button class="pchip ${reportePeriod===p.id?"active":""}" onclick="setPeriod('${p.id}')">${p.label}</button>`).join("")}</div><div class="kpi-row"><div class="kpi"><div class="kn" style="color:${C.blue};">${totalConteo}</div><div class="kl">Paquetes registrados</div><div class="ks">conteo período</div></div><div class="kpi"><div class="kn" style="color:${C.green};">${totalColecta}</div><div class="kl">Paquetes salieron</div><div class="ks">confirmados colecta</div></div><div class="kpi"><div class="kn" style="color:${willPct===100?C.limeD:willPct!==null?C.amber:C.muted};">${willPct!==null?willPct+"%":"—"}</div><div class="kl">Tasa Will</div><div class="ks">entrega período</div></div><div class="kpi"><div class="kn" style="color:${C.pink};">${tfOrds.length}</div><div class="kl">Turbo &amp; Flex</div><div class="ks">${fmtCLP(tfNeto)} neto</div></div></div><div class="card"><div class="st">Desglose por transportista</div><table class="tbl"><thead><tr><th>Transportista</th><th>Registrados</th><th>Salieron</th><th>Diferencia</th></tr></thead><tbody>${carrierData.map(({k,c,conteo,colecta})=>`<tr><td>${cb(k)} ${c.name}</td><td><strong style="font-family:'Fraunces',serif;font-size:18px;">${conteo}</strong></td><td><strong style="font-family:'Fraunces',serif;font-size:18px;color:${C.green};">${colecta}</strong></td><td style="color:${conteo-colecta>0?C.amber:C.muted};font-weight:700;">${conteo-colecta>0?"+"+( conteo-colecta):"✓"}</td></tr>`).join("")}<tr style="background:#F8F8F6;border-top:2px solid #0A0A0B;"><td><strong>TOTAL</strong></td><td><strong style="font-family:'Fraunces',serif;font-size:20px;">${totalConteo}</strong></td><td><strong style="font-family:'Fraunces',serif;font-size:20px;color:${C.green};">${totalColecta}</strong></td><td></td></tr></tbody></table></div><div class="card"><div class="st">Rendimiento Will — período</div><div style="display:flex;gap:24px;flex-wrap:wrap;"><div><div style="font-family:'Fraunces',serif;font-size:42px;font-weight:900;color:${C.amber};">${sacaAsig}</div><div style="font-size:13px;color:#666;font-weight:700;">Asignados</div></div><div><div style="font-family:'Fraunces',serif;font-size:42px;font-weight:900;color:${C.green};">${sacaEnt}</div><div style="font-size:13px;color:#666;font-weight:700;">Entregados</div></div><div><div style="font-family:'Fraunces',serif;font-size:42px;font-weight:900;color:${C.red};">${sacaFail}</div><div style="font-size:13px;color:#666;font-weight:700;">Fallidos</div></div><div><div style="font-family:'Fraunces',serif;font-size:42px;font-weight:900;color:${willPct===100?C.limeD:C.amber};">${willPct!==null?willPct+"%":"—"}</div><div style="font-size:13px;color:#666;font-weight:700;">Tasa período</div></div></div></div><div class="card"><div class="st">Turbo &amp; Flex — período</div><div style="display:flex;gap:24px;flex-wrap:wrap;"><div><div style="font-family:'Fraunces',serif;font-size:42px;font-weight:900;color:${C.blue};">${tfOrds.filter(o=>o.type==="turbo").length}</div><div style="font-size:13px;color:#666;font-weight:700;">⚡ Órdenes Turbo</div></div><div><div style="font-family:'Fraunces',serif;font-size:42px;font-weight:900;color:${C.purple};">${tfOrds.filter(o=>o.type==="flex").length}</div><div style="font-size:13px;color:#666;font-weight:700;">📅 Órdenes Flex</div></div><div><div style="font-family:'Fraunces',serif;font-size:28px;font-weight:900;color:${C.pink};">${fmtCLP(tfNeto)}</div><div style="font-size:13px;color:#666;font-weight:700;">Neto facturado</div></div></div></div>`;}
 function setPeriod(p){reportePeriod=p;renderAll();}
 document.getElementById("hdr-date").textContent=new Date().toLocaleDateString("es-CL",{weekday:"long",day:"numeric",month:"long"});
 load();
