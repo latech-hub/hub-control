@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Will — La Tech Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{background:#F5F4F0;font-family:'Outfit',sans-serif;min-height:100vh;color:#0A0A0B;}
+button,input,select,textarea{font-family:inherit;}
+.hidden{display:none!important;}
+
+/* HEADER */
+.hdr{background:#0A0A0B;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;}
+.hdr-logo{font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:white;letter-spacing:-0.02em;}
+.hdr-logo span{color:#C8FF00;}
+.hdr-conn{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;background:#1a1a1a;color:#888;}
+.hdr-conn.ok{background:#1a3a00;color:#C8FF00;}
+.hdr-conn.err{background:#3a0000;color:#FF4444;}
+
+/* MAIN */
+.main{padding:16px;}
+
+/* CARDS */
+.card{background:white;border:2px solid #0A0A0B;border-radius:16px;padding:20px;margin-bottom:14px;box-shadow:3px 3px 0 #0A0A0B;}
+.card-lime{background:#EFFFCE;border-color:#0A0A0B;}
+.card-amber{background:#FFF8E1;border-color:#F59E0B;}
+
+/* ESTADO VACÍO */
+.empty-state{text-align:center;padding:48px 20px;}
+.empty-ico{font-size:64px;margin-bottom:16px;}
+.empty-title{font-family:'Fraunces',serif;font-size:26px;font-weight:900;margin-bottom:8px;}
+.empty-sub{font-size:15px;color:#666;line-height:1.6;}
+
+/* EN RUTA */
+.ruta-header{background:#C8FF00;border:2px solid #0A0A0B;border-radius:14px;padding:20px;margin-bottom:14px;box-shadow:3px 3px 0 #0A0A0B;}
+.ruta-title{font-family:'Fraunces',serif;font-size:28px;font-weight:900;color:#1a3a00;margin-bottom:4px;}
+.ruta-sub{font-size:14px;color:#3a5200;font-weight:600;}
+.ruta-kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.kpi{background:white;border:2px solid #0A0A0B;border-radius:12px;padding:14px;text-align:center;box-shadow:2px 2px 0 #0A0A0B;}
+.kpi-val{font-family:'Fraunces',serif;font-size:40px;font-weight:900;line-height:1;}
+.kpi-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#666;margin-top:4px;}
+
+/* FORMULARIO CIERRE */
+.section-title{font-family:'Fraunces',serif;font-size:18px;font-weight:700;margin-bottom:12px;}
+.lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#555;margin-bottom:6px;}
+.stepper{display:flex;align-items:center;border:2.5px solid #0A0A0B;border-radius:12px;overflow:hidden;background:white;box-shadow:2px 2px 0 #0A0A0B;width:100%;}
+.step-btn{width:56px;height:56px;background:#F0EEE8;border:none;font-size:26px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;-webkit-appearance:none;}
+.step-btn:active{background:#C8FF00;}
+.step-val{flex:1;text-align:center;font-family:'Fraunces',serif;font-size:38px;font-weight:900;border:none;outline:none;background:transparent;color:#0A0A0B;min-width:0;padding:8px 0;}
+.step-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+.km-wrap{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.km-inp{flex:1;border:2.5px solid #0A0A0B;border-radius:12px;padding:14px 16px;font-family:'Fraunces',serif;font-size:32px;font-weight:900;text-align:center;outline:none;background:white;box-shadow:2px 2px 0 #0A0A0B;-webkit-appearance:none;}
+.km-unit{font-size:20px;font-weight:700;color:#555;}
+.notas-inp{width:100%;border:2px solid #CCC;border-radius:10px;padding:12px 14px;font-size:15px;line-height:1.5;outline:none;resize:vertical;min-height:80px;background:white;}
+.notas-inp:focus{border-color:#0057FF;}
+
+/* FOTOS */
+.foto-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;}
+.foto-thumb{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;border:2px solid #0A0A0B;}
+.foto-thumb img{width:100%;height:100%;object-fit:cover;}
+.foto-del{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.7);border:none;color:white;border-radius:50%;width:24px;height:24px;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-appearance:none;}
+.foto-add{aspect-ratio:1;border:2.5px dashed #CCC;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:white;font-size:28px;color:#888;}
+.foto-add-lbl{font-size:11px;font-weight:700;margin-top:4px;color:#888;}
+input[type=file]{display:none;}
+
+/* BOTONES */
+.btn{border-radius:12px;padding:16px 20px;font-size:16px;font-weight:800;border:2.5px solid;cursor:pointer;transition:all .15s;width:100%;-webkit-appearance:none;}
+.btn:active{transform:translate(2px,2px);}
+.btn-lime{background:#C8FF00;border-color:#0A0A0B;color:#0A0A0B;box-shadow:3px 3px 0 #0A0A0B;}
+.btn-dark{background:#0A0A0B;border-color:#0A0A0B;color:white;box-shadow:3px 3px 0 #444;margin-bottom:10px;}
+.btn-muted{background:white;border-color:#CCC;color:#555;font-size:14px;padding:12px;}
+.btn-red{background:#E63946;border-color:#C0000A;color:white;box-shadow:3px 3px 0 #C0000A;}
+.btn-export{background:#8B5CF6;border-color:#7C3AED;color:white;box-shadow:3px 3px 0 #6D28D9;font-size:14px;padding:12px;}
+
+/* TOTAL CHECK */
+.total-check{text-align:center;font-size:14px;font-weight:700;color:#555;margin-bottom:16px;padding:10px;background:#F5F4F0;border-radius:8px;}
+.total-check.ok{background:#EFFFCE;color:#1a3a00;}
+.total-check.err{background:#FEE2E2;color:#C0000A;}
+
+/* ÉXITO */
+.success-wrap{text-align:center;padding:32px 16px;}
+.success-ico{font-size:72px;margin-bottom:16px;}
+.success-title{font-family:'Fraunces',serif;font-size:28px;font-weight:900;margin-bottom:8px;color:#1a3a00;}
+.success-sub{font-size:15px;color:#555;margin-bottom:24px;line-height:1.6;}
+.success-stats{background:#EFFFCE;border:2px solid #0A0A0B;border-radius:14px;padding:16px;margin-bottom:20px;text-align:left;}
+.stat-row{display:flex;justify-content:space-between;font-size:15px;margin-bottom:6px;}
+.stat-val{font-weight:800;}
+
+/* TOAST */
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:#0A0A0B;color:white;border-radius:10px;padding:13px 20px;font-size:14px;font-weight:700;z-index:999;opacity:0;transition:all .25s;pointer-events:none;border-left:4px solid #C8FF00;white-space:nowrap;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* EVIDENCIA MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;overflow-y:auto;padding:16px;}
+.modal{background:white;border-radius:16px;padding:24px;max-width:480px;margin:0 auto;}
+.modal-title{font-family:'Fraunces',serif;font-size:22px;font-weight:900;margin-bottom:16px;}
+.ev-foto-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0;}
+.ev-foto{border-radius:10px;overflow:hidden;border:1.5px solid #DDD;}
+.ev-foto img{width:100%;display:block;}
+
+/* PRINT */
+@media print{
+  .hdr,.btn,.modal-bg{display:none!important;}
+  body{background:white;}
+  .card{box-shadow:none!important;border:1px solid #CCC!important;}
+}
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-logo">WILL · <span>HUB</span></div>
+  <div id="conn-status" class="hdr-conn">● ...</div>
+</div>
+
+<div class="main" id="app">
+  <div id="screen-wait" class="hidden">
+    <div class="empty-state">
+      <div class="empty-ico">🚲</div>
+      <div class="empty-title">Sin saca hoy</div>
+      <div class="empty-sub">El mesón aún no ha abierto una saca para hoy.<br>Espera y recarga cuando estés listo para salir.</div>
+      <button class="btn btn-muted" style="margin-top:24px;width:auto;padding:12px 28px;" onclick="location.reload()">🔄 Recargar</button>
+    </div>
+  </div>
+
+  <div id="screen-ruta" class="hidden">
+    <div class="ruta-header">
+      <div class="ruta-title">🚲 En ruta</div>
+      <div class="ruta-sub" id="ruta-sub">Saca abierta</div>
+    </div>
+    <div class="ruta-kpis">
+      <div class="kpi"><div class="kpi-val" id="ruta-pkgs">—</div><div class="kpi-lbl">📦 Paquetes</div></div>
+      <div class="kpi"><div class="kpi-val" id="ruta-hora">—</div><div class="kpi-lbl">🕐 Salida</div></div>
+    </div>
+    <div class="card card-lime">
+      <div style="font-size:15px;font-weight:700;color:#1a3a00;margin-bottom:14px;">¿Ya terminaste la ruta?</div>
+      <button class="btn btn-dark" onclick="iniciarCierre()">📋 Registrar resultado</button>
+    </div>
+  </div>
+
+  <div id="screen-cierre" class="hidden">
+    <div class="card">
+      <div class="section-title">Resultado de la ruta</div>
+      <div class="step-grid">
+        <div>
+          <div class="lbl">✓ Entregados</div>
+          <div class="stepper">
+            <button class="step-btn" onclick="stepAdj('c-ent','c-fail')">−</button>
+            <input class="step-val" id="c-ent" type="number" inputmode="numeric" min="0" value="0" onfocus="this.select()" oninput="syncSteps('c-ent','c-fail')">
+            <button class="step-btn" onclick="stepAdjUp('c-ent','c-fail')">+</button>
+          </div>
+        </div>
+        <div>
+          <div class="lbl">✗ No entregados</div>
+          <div class="stepper">
+            <button class="step-btn" onclick="stepAdj('c-fail','c-ent')">−</button>
+            <input class="step-val" id="c-fail" type="number" inputmode="numeric" min="0" value="0" onfocus="this.select()" oninput="syncSteps('c-fail','c-ent')">
+            <button class="step-btn" onclick="stepAdjUp('c-fail','c-ent')">+</button>
+          </div>
+        </div>
+      </div>
+      <div id="total-check" class="total-check">— paquetes asignados</div>
+    </div>
+
+    <div class="card">
+      <div class="lbl" style="margin-bottom:8px;">🗺️ Kilómetros recorridos</div>
+      <div class="km-wrap">
+        <input class="km-inp" id="c-km" type="number" inputmode="decimal" min="0" step="0.1" placeholder="0" onfocus="this.select()">
+        <span class="km-unit">km</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="lbl" style="margin-bottom:8px;">📝 Notas de la ruta</div>
+      <textarea class="notas-inp" id="c-notas" placeholder="Ej: Dirección X no atendió, portón cerrado. Paquete dejado en conserjería..."></textarea>
+    </div>
+
+    <div class="card">
+      <div class="lbl" style="margin-bottom:8px;">📷 Fotos de evidencia <span style="font-weight:400;color:#888;">(máx. 3)</span></div>
+      <div class="foto-grid" id="foto-grid"></div>
+      <input type="file" id="foto-input" accept="image/*" capture="environment" onchange="agregarFoto(this)">
+    </div>
+
+    <button class="btn btn-lime" onclick="cerrarSaca()" style="margin-bottom:10px;">✅ Cerrar saca</button>
+    <button class="btn btn-muted" onclick="cancelarCierre()">Cancelar</button>
+  </div>
+
+  <div id="screen-success" class="hidden">
+    <div class="success-wrap">
+      <div class="success-ico">🎉</div>
+      <div class="success-title">¡Saca cerrada!</div>
+      <div class="success-sub" id="success-sub">Resultado guardado.</div>
+      <div class="success-stats" id="success-stats"></div>
+      <button class="btn btn-export" onclick="verEvidencia()" style="margin-bottom:10px;">📤 Ver evidencia</button>
+      <button class="btn btn-muted" onclick="location.reload()">🔄 Nueva jornada</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<div class="modal-bg hidden" id="ev-modal">
+  <div class="modal">
+    <div class="modal-title">📋 Evidencia de ruta</div>
+    <div id="ev-content"></div>
+    <button class="btn btn-dark" onclick="window.print()" style="margin-bottom:10px;">🖨️ Imprimir / PDF</button>
+    <button class="btn btn-muted" onclick="document.getElementById('ev-modal').classList.add('hidden')">Cerrar</button>
+  </div>
+</div>
+
+<script>
+const FB_CONFIG={apiKey:"AIzaSyCnMwEmYvdnPksMLfY_pfPQN75OmV-FFVg",authDomain:"latech-hub.firebaseapp.com",projectId:"latech-hub",storageBucket:"latech-hub.firebasestorage.app",messagingSenderId:"964698742567",appId:"1:964698742567:web:bfa013b9108f9f212c9302"};
+firebase.initializeApp(FB_CONFIG);
+const db=firebase.firestore();
+const FB_DOC=()=>db.collection("hub").doc("state_v4");
+
+const todayStr=()=>new Date().toLocaleDateString("en-CA",{timeZone:"America/Santiago"});
+const fmtHora=ts=>new Date(ts).toLocaleTimeString("es-CL",{hour:"2-digit",minute:"2-digit"});
+const fmtFecha=d=>new Date(d+'T12:00:00').toLocaleDateString("es-CL",{weekday:"long",day:"numeric",month:"long"});
+
+let state={conteos:[],colectas:[],sacas:[],hubClients:[],hubOrders:[],hubPayments:{}};
+let sacaActual=null;
+let fotos=[];
+let sacaCerrada=null;
+
+let toastTimer;
+function toast(msg,color="#C8FF00"){const t=document.getElementById("toast");t.textContent=msg;t.style.borderLeftColor=color;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),3000);}
+
+function setConn(ok){const el=document.getElementById("conn-status");if(ok){el.textContent="● Conectado";el.className="hdr-conn ok";}else{el.textContent="● Sin conexión";el.className="hdr-conn err";}}
+
+function show(id){["screen-wait","screen-ruta","screen-cierre","screen-success"].forEach(s=>document.getElementById(s).classList.add("hidden"));document.getElementById(id).classList.remove("hidden");}
+
+function renderEstado(){
+  const hoy=todayStr();
+  const saca=state.sacas.find(s=>s.date===hoy&&!s.closedAt);
+  sacaActual=saca||null;
+
+  if(!saca){
+    show("screen-wait");
+    return;
+  }
+  // Saca abierta
+  document.getElementById("ruta-pkgs").textContent=saca.assigned;
+  document.getElementById("ruta-hora").textContent=saca.ts?fmtHora(saca.ts):"—";
+  document.getElementById("ruta-sub").textContent=`${fmtFecha(hoy)} · ${saca.assigned} paquetes`;
+  show("screen-ruta");
+}
+
+// ── CIERRE ──────────────────────────────────────────────────────────────────
+function iniciarCierre(){
+  if(!sacaActual)return;
+  document.getElementById("c-ent").value=sacaActual.assigned;
+  document.getElementById("c-fail").value="0";
+  document.getElementById("c-km").value="";
+  document.getElementById("c-notas").value="";
+  fotos=[];
+  renderFotos();
+  actualizarCheck();
+  show("screen-cierre");
+}
+
+function cancelarCierre(){show("screen-ruta");}
+
+function stepAdj(idA,idB){const max=sacaActual?.assigned||999;const a=Math.max(0,parseInt(document.getElementById(idA).value||0)-1);const b=Math.max(0,max-a);document.getElementById(idA).value=a;document.getElementById(idB).value=b;actualizarCheck();}
+function stepAdjUp(idA,idB){const max=sacaActual?.assigned||999;const a=Math.min(max,parseInt(document.getElementById(idA).value||0)+1);const b=Math.max(0,max-a);document.getElementById(idA).value=a;document.getElementById(idB).value=b;actualizarCheck();}
+function syncSteps(idA,idB){const max=sacaActual?.assigned||999;const a=Math.max(0,parseInt(document.getElementById(idA).value||0));const b=Math.max(0,max-a);document.getElementById(idB).value=b;actualizarCheck();}
+
+function actualizarCheck(){
+  const max=sacaActual?.assigned||0;
+  const e=parseInt(document.getElementById("c-ent").value||0);
+  const f=parseInt(document.getElementById("c-fail").value||0);
+  const total=e+f;
+  const el=document.getElementById("total-check");
+  el.textContent=`${total} de ${max} paquetes registrados`;
+  el.className="total-check"+(total===max?" ok":total>max?" err":"");
+}
+
+// ── FOTOS ──────────────────────────────────────────────────────────────────
+function renderFotos(){
+  const grid=document.getElementById("foto-grid");
+  let html=fotos.map((f,i)=>`<div class="foto-thumb"><img src="${f}"><button class="foto-del" onclick="quitarFoto(${i})">✕</button></div>`).join("");
+  if(fotos.length<3){html+=`<div class="foto-add" onclick="document.getElementById('foto-input').click()"><span>📷</span><span class="foto-add-lbl">Agregar</span></div>`;}
+  grid.innerHTML=html;
+}
+
+function agregarFoto(input){
+  const file=input.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    // Comprimir
+    const img=new Image();
+    img.onload=()=>{
+      const canvas=document.createElement("canvas");
+      const MAX=800;
+      let w=img.width,h=img.height;
+      if(w>h&&w>MAX){h=Math.round(h*MAX/w);w=MAX;}
+      else if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}
+      canvas.width=w;canvas.height=h;
+      canvas.getContext("2d").drawImage(img,0,0,w,h);
+      const compressed=canvas.toDataURL("image/jpeg",0.65);
+      fotos.push(compressed);
+      renderFotos();
+      toast("📷 Foto agregada",  "#22C55E");
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+  input.value="";
+}
+
+function quitarFoto(i){fotos.splice(i,1);renderFotos();}
+
+// ── GUARDAR ────────────────────────────────────────────────────────────────
+async function cerrarSaca(){
+  if(!sacaActual){toast("Sin saca activa","#E63946");return;}
+  const e=parseInt(document.getElementById("c-ent").value||0);
+  const f=parseInt(document.getElementById("c-fail").value||0);
+  const km=Math.round((parseFloat(document.getElementById("c-km").value)||0)*10)/10;
+  const notas=document.getElementById("c-notas").value.trim();
+  const btn=document.querySelector("#screen-cierre .btn-lime");
+  btn.disabled=true;btn.textContent="Guardando...";
+
+  try{
+    state.sacas=state.sacas.map(s=>s.id!==sacaActual.id?s:{
+      ...s,delivered:e,failed:f,
+      km:km||undefined,
+      notas:notas||undefined,
+      fotos:fotos.length?[...fotos]:undefined,
+      closedAt:new Date().toISOString()
+    });
+    await FB_DOC().set({json:JSON.stringify(state),updatedAt:new Date().toISOString()});
+    sacaCerrada=state.sacas.find(s=>s.id===sacaActual.id);
+    mostrarExito();
+    toast("✅ Saca cerrada","#22C55E");
+  }catch(err){
+    toast("❌ Error al guardar. Intenta de nuevo.","#E63946");
+    btn.disabled=false;btn.textContent="✅ Cerrar saca";
+  }
+}
+
+function mostrarExito(){
+  if(!sacaCerrada)return;
+  const s=sacaCerrada;
+  const pct=s.assigned>0?Math.round((s.delivered/s.assigned)*100):0;
+  document.getElementById("success-sub").textContent=`${fmtFecha(s.date)}`;
+  document.getElementById("success-stats").innerHTML=`
+    <div class="stat-row"><span>📦 Asignados</span><span class="stat-val">${s.assigned}</span></div>
+    <div class="stat-row"><span>✅ Entregados</span><span class="stat-val" style="color:#22C55E;">${s.delivered}</span></div>
+    <div class="stat-row"><span>❌ No entregados</span><span class="stat-val" style="color:#E63946;">${s.failed}</span></div>
+    <div class="stat-row"><span>📊 Tasa</span><span class="stat-val" style="color:${pct===100?"#1a3a00":"#D97706"};">${pct}%</span></div>
+    ${s.km?`<div class="stat-row"><span>🗺️ Kilómetros</span><span class="stat-val">${s.km} km</span></div>`:""}
+    ${s.notas?`<div style="margin-top:8px;font-size:13px;color:#555;border-top:1px solid #DDD;padding-top:8px;">${s.notas}</div>`:""}
+  `;
+  show("screen-success");
+}
+
+function verEvidencia(){
+  if(!sacaCerrada)return;
+  const s=sacaCerrada;
+  const pct=s.assigned>0?Math.round((s.delivered/s.assigned)*100):0;
+  const fotosHTML=(s.fotos&&s.fotos.length)?`<div class="ev-foto-grid">${s.fotos.map(f=>`<div class="ev-foto"><img src="${f}"></div>`).join("")}</div>`:"";
+  document.getElementById("ev-content").innerHTML=`
+    <div style="font-size:13px;color:#555;margin-bottom:12px;font-weight:700;">La Tech Hub · Will — Evidencia de ruta</div>
+    <div style="font-size:15px;font-weight:800;margin-bottom:12px;">${fmtFecha(s.date)}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+      <div style="background:#F5F4F0;border-radius:8px;padding:10px;text-align:center;"><div style="font-family:'Fraunces',serif;font-size:28px;font-weight:900;">${s.assigned}</div><div style="font-size:11px;color:#666;font-weight:700;">ASIGNADOS</div></div>
+      <div style="background:#EFFFCE;border-radius:8px;padding:10px;text-align:center;"><div style="font-family:'Fraunces',serif;font-size:28px;font-weight:900;color:#1a3a00;">${pct}%</div><div style="font-size:11px;color:#3a5200;font-weight:700;">TASA</div></div>
+      <div style="background:#F5F4F0;border-radius:8px;padding:10px;text-align:center;"><div style="font-family:'Fraunces',serif;font-size:28px;font-weight:900;color:#22C55E;">${s.delivered}</div><div style="font-size:11px;color:#666;font-weight:700;">ENTREGADOS</div></div>
+      <div style="background:#FEE2E2;border-radius:8px;padding:10px;text-align:center;"><div style="font-family:'Fraunces',serif;font-size:28px;font-weight:900;color:#E63946;">${s.failed}</div><div style="font-size:11px;color:#666;font-weight:700;">NO ENTREGADOS</div></div>
+    </div>
+    ${s.km?`<div style="background:#F5F4F0;border-radius:8px;padding:10px;margin-bottom:12px;"><span style="font-weight:700;">🗺️ Kilómetros:</span> ${s.km} km</div>`:""}
+    ${s.notas?`<div style="background:#FFF8E1;border:1px solid #F59E0B;border-radius:8px;padding:12px;margin-bottom:12px;"><div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#92400E;margin-bottom:4px;">Notas</div><div style="font-size:14px;line-height:1.6;">${s.notas}</div></div>`:""}
+    ${fotosHTML}
+    <div style="font-size:11px;color:#AAA;margin-top:12px;text-align:center;">Generado ${new Date().toLocaleString("es-CL")} · hub.latechhub.cl</div>
+  `;
+  document.getElementById("ev-modal").classList.remove("hidden");
+}
+
+// ── FIREBASE LISTENER ──────────────────────────────────────────────────────
+FB_DOC().onSnapshot(snap=>{
+  if(snap.exists){
+    const data=snap.data();
+    if(data&&data.json){
+      try{
+        const parsed=JSON.parse(data.json);
+        state=parsed;
+        state.sacas=state.sacas||[];
+      }catch(e){}
+    }
+    setConn(true);
+  }else{
+    setConn(true);
+  }
+  // Solo re-renderizar si no estamos en cierre o éxito
+  const screens=["screen-cierre","screen-success"];
+  const active=screens.find(s=>!document.getElementById(s).classList.contains("hidden"));
+  if(!active)renderEstado();
+},err=>{setConn(false);});
+</script>
+</body>
+</html>
