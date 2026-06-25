@@ -235,7 +235,16 @@ function _fromFirestore(v){
   return null;
 }
 
-async function load(){
+async function migrateConteos(conteos){
+  return (conteos||[]).map(function(c){
+    if(c.do===undefined||c.pu===undefined){
+      var v=+(c.count||0);
+      return{id:c.id,date:c.date,carrier:c.carrier,do:c.carrier==="pi"?0:v,pu:c.carrier==="pi"?v:0,ts:c.ts};
+    }
+    return c;
+  });
+}
+function load(){
   // Siempre cargar localStorage primero como base
   try{const s=localStorage.getItem(SK);if(s)state=JSON.parse(s);}catch(e){}
   // Intentar obtener datos más recientes de Firebase
@@ -248,19 +257,13 @@ async function load(){
         // Usar Firebase si tiene más datos que localStorage
         const remoteOrds=(remote.hubOrders||[]).length;
         const localOrds=(state.hubOrders||[]).length;
-        if(remoteOrds>=localOrds)state=remote;
+        if(remoteOrds>=localOrds){state=remote;state.conteos=migrateConteos(state.conteos);}
       }
     }
     _fbSetStatus(true);
   }catch(e){_fbSetStatus(false);}
   state.conteos=state.conteos||[];state.colectas=state.colectas||[];state.sacas=state.sacas||[];state.hubClients=state.hubClients||[];state.hubOrders=state.hubOrders||[];state.hubPayments=state.hubPayments||{};
-state.conteos=state.conteos.map(function(c){
-  if(c.do===undefined||c.pu===undefined){
-    var v=c.count||0;
-    return{id:c.id,date:c.date,carrier:c.carrier,do:c.carrier==="pi"?0:v,pu:c.carrier==="pi"?v:0,ts:c.ts};
-  }
-  return c;
-});
+state.conteos=migrateConteos(state.conteos);
 }
 
 function save(){
