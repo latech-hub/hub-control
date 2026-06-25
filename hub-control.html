@@ -264,7 +264,7 @@ function flexInit(){
   meses.forEach((mn,i)=>{const o=document.createElement("option");o.value=i+1;o.textContent=mn;if(i+1===fm)o.selected=true;sm.appendChild(o);});
   // Populate years (today to +1 year)
   sy.innerHTML="";
-  for(let i=ty;i<=ty+1;i++){const o=document.createElement("option");o.value=i;o.textContent=i;if(i===fy)o.selected=true;sy.appendChild(o);}
+  for(let i=ty-1;i<=ty+1;i++){const o=document.createElement("option");o.value=i;o.textContent=i;if(i===fy)o.selected=true;sy.appendChild(o);}
 }
 function flexChange(){
   const sd=document.getElementById("tf-fd"),sm=document.getElementById("tf-fm"),sy=document.getElementById("tf-fy");
@@ -275,9 +275,7 @@ function flexChange(){
   // Rebuild days if month/year changed
   const t=todayStr(),tp=t.split("-"),ty=+tp[0],tm=+tp[1],td=+tp[2];
   sd.innerHTML="";
-  const startD=(y===ty&&m===tm)?td:1;
-  for(let i=startD;i<=maxD;i++){const o=document.createElement("option");o.value=i;o.textContent=String(i).padStart(2,"0");if(i===d)o.selected=true;sd.appendChild(o);}
-  if(d<startD)d=startD;
+  for(let i=1;i<=maxD;i++){const o=document.createElement("option");o.value=i;o.textContent=String(i).padStart(2,"0");if(i===d)o.selected=true;sd.appendChild(o);}
   tfDate=y+"-"+String(m).padStart(2,"0")+"-"+String(d).padStart(2,"0");
   const lbl=document.getElementById("tf-date-lbl");
   if(lbl)lbl.textContent=new Date(y,m-1,d).toLocaleDateString("es-CL",{weekday:"long",day:"numeric",month:"long"});
