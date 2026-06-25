@@ -254,6 +254,13 @@ async function load(){
     _fbSetStatus(true);
   }catch(e){_fbSetStatus(false);}
   state.conteos=state.conteos||[];state.colectas=state.colectas||[];state.sacas=state.sacas||[];state.hubClients=state.hubClients||[];state.hubOrders=state.hubOrders||[];state.hubPayments=state.hubPayments||{};
+state.conteos=state.conteos.map(function(c){
+  if(c.do===undefined||c.pu===undefined){
+    var v=c.count||0;
+    return{id:c.id,date:c.date,carrier:c.carrier,do:c.carrier==="pi"?0:v,pu:c.carrier==="pi"?v:0,ts:c.ts};
+  }
+  return c;
+});
 }
 
 function save(){
