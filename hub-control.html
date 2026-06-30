@@ -378,30 +378,27 @@ let tfSub="nueva",tfWO=0,tfAF="all",tfExp="",tfDone=null,tfShowCF=false,tfEditCL
 let tfType="turbo",tfCID="",tfPkgs=[],tfDate=todayStr(),tfNotes="";
 function tfSetFecha(part,val){
   var p=tfDate.split("-");
-  if(part==="y") p[0]=val;
-  if(part==="m") p[1]=("0"+val).slice(-2);
-  if(part==="d") p[2]=("0"+val).slice(-2);
-  // Corregir día si supera días del mes
+  if(part==="y") p[0]=String(val);
+  if(part==="m") p[1]=val<10?"0"+val:String(val);
+  if(part==="d") p[2]=val<10?"0"+val:String(val);
   var md=new Date(+p[0],+p[1],0).getDate();
-  if(+p[2]>md) p[2]=("0"+md).slice(-2);
+  if(+p[2]>md) p[2]=md<10?"0"+md:String(md);
   tfDate=p.join("-");
   renderAll();
 }
 function tfFechaHTML(d){
   var p=d.split("-"),fy=+p[0],fm=+p[1],fd=+p[2];
-  var meses=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-  var maxD=new Date(fy,fm,0).getDate();
-  var ty=new Date().getFullYear();
-  var dd="",mm="",yy="";
-  for(var i=1;i<=maxD;i++) dd+="<option value='"+i+"'"+(i===fd?" selected":"")+">"+("0"+i).slice(-2)+"</option>";
-  for(var i=0;i<12;i++) mm+="<option value='"+(i+1)+"'"+(i+1===fm?" selected":"")+">"+ meses[i]+"</option>";
-  for(var i=ty-1;i<=ty+1;i++) yy+="<option value='"+i+"'"+(i===fy?" selected":"")+">"+i+"</option>";
-  var s="<div style='display:flex;gap:8px;flex-wrap:wrap;'>";
-  s+="<select class='inp' style='width:80px;font-size:16px;font-weight:700;' onchange='tfSetFecha("d",this.value)'>"+dd+"</select>";
-  s+="<select class='inp' style='flex:1;min-width:120px;font-size:16px;font-weight:700;' onchange='tfSetFecha("m",this.value)'>"+mm+"</select>";
-  s+="<select class='inp' style='width:95px;font-size:16px;font-weight:700;' onchange='tfSetFecha("y",this.value)'>"+yy+"</select>";
-  s+="</div>";
-  return s;
+  var M=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+  var maxD=new Date(fy,fm,0).getDate(),ty=new Date().getFullYear();
+  var dd="",mm="",yy="",i,o;
+  for(i=1;i<=maxD;i++){o="<option value="+i+(i===fd?" selected":"")+">"+("0"+i).slice(-2)+"</option>";dd+=o;}
+  for(i=0;i<12;i++){o="<option value="+(i+1)+(i+1===fm?" selected":"")+">"+M[i]+"</option>";mm+=o;}
+  for(i=ty-1;i<=ty+1;i++){o="<option value="+i+(i===fy?" selected":"")+">"+i+"</option>";yy+=o;}
+  return "<div style=\"display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px;\">"
+    +"<select class=\"inp\" style=\"width:80px;font-size:16px;font-weight:700;\" onchange=\"tfSetFecha('d',+this.value)\">"+dd+"</select>"
+    +"<select class=\"inp\" style=\"flex:1;min-width:120px;font-size:16px;font-weight:700;\" onchange=\"tfSetFecha('m',+this.value)\">"+mm+"</select>"
+    +"<select class=\"inp\" style=\"width:95px;font-size:16px;font-weight:700;\" onchange=\"tfSetFecha('y',+this.value)\">"+yy+"</select>"
+    +"</div>";
 }
 function tfST(s){tfSub=s;tfDone=null;renderAll();}
 function tfTogExp(id){tfExp=tfExp===id?"":id;renderAll();}
