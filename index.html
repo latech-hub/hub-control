@@ -313,72 +313,47 @@ function mkInput(k,tipo,total,color){
 }
 function renderConteo(D){
   var hoy=D.hoy,conteoHoy=D.conteoHoy,carrierKeys=Object.keys(CARRIERS);
-  var histDays=dateRange(6).slice(0,5).map(function(d){return{date:d,carriers:Object.entries(CARRIERS).map(function(e){var k=e[0],c=e[1],rec=state.conteos.find(function(x){return x.date===d&&x.carrier===k;})||{do:0,pu:0};return{k:k,c:c,rec:rec};})};}).filter(function(d){return d.carriers.some(function(c){return(c.rec.do||0)+(c.rec.pu||0)>0;});});
   var html="";
   html+="<div class='ctx'><span style='font-size:16px;'>📦</span><div><div class='ctx-title'>Conteo diario — Drop Off &amp; Pick Up</div><div class='ctx-sub'>Registra por separado los paquetes de cada tipo</div></div><span class='ctx-pill cp-blue'>Hoy · "+fmtDL(hoy)+"</span></div>";
-  html+="<div style='font-size:13px;color:#888;margin-bottom:20px;font-weight:600;'>💡 <span style='color:#0057FF;font-weight:800;'>DROP OFF</span> = paquetes que dejan clientes para enviar &nbsp;·&nbsp; <span style='color:#22C55E;font-weight:800;'>PICK UP</span> = paquetes que vienen a retirar los carriers</div>";
+  html+="<div style='font-size:13px;color:#888;margin-bottom:20px;font-weight:600;'>💡 <span style='color:#0057FF;font-weight:800;'>DROP OFF</span> = clientes dejan paquetes &nbsp;·&nbsp; <span style='color:#22C55E;font-weight:800;'>PICK UP</span> = carriers retiran paquetes</div>";
   html+="<div style='display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px;'>";
   carrierKeys.forEach(function(k){
     var c=CARRIERS[k];
     var rec=conteoHoy.find(function(x){return x.carrier===k;})||{do:0,pu:0};
-    var dv=rec.do||0,pv=rec.pu||0,isPi=k==="pi";
+    var dv=+(rec.do||0),pv=+(rec.pu||0),isPi=k==="pi";
     html+="<div class='card' style='padding:16px 18px;min-width:0;overflow:hidden;'>";
-    html+="<div style='display:flex;align-items:center;gap:8px;margin-bottom:14px;'>"+cb(k)+"<span style='font-size:15px;font-weight:800;'>"+c.name+"</span>";
-    if(isPi) html+="<span style='margin-left:auto;background:#E0FFF8;color:#00796B;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:800;'>Solo Pick Up</span>";
+    html+="<div style='display:flex;align-items:center;gap:8px;margin-bottom:12px;'>"+cb(k)+"<span style='font-size:15px;font-weight:800;'>"+c.name+"</span>";
+    if(isPi) html+="<span style='margin-left:auto;background:#E0FFF8;color:#00796B;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:800;'>Solo PU</span>";
     html+="</div>";
-    // DO y PU lado a lado
-    html+="<div style='display:flex;gap:10px;'>";
-    // DROP OFF
+    html+="<div style='display:flex;gap:8px;'>";
     if(!isPi){
       html+="<div style='flex:1;background:#EFF5FF;border:2px solid #0057FF;border-radius:10px;padding:10px 8px;'>";
-      html+="<div style='font-size:10px;color:#0057FF;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;'>📤 Drop Off</div>";
-      html+="<div id='total-do-"+k+"' style='font-family:Fraunces,serif;font-size:34px;font-weight:900;line-height:1;color:"+(dv>0?"#0057FF":"#CCC")+";font-variant-numeric:tabular-nums;margin-bottom:8px;'>"+dv+"</div>";
-      html+="<div style='display:flex;border:2px solid #0057FF;border-radius:8px;overflow:hidden;background:white;margin-bottom:8px;'>";
-      html+="<button onclick=\"cntDown('inp-do-"+k+"')\" style='width:34px;height:38px;background:#EFF5FF;border:none;font-size:18px;font-weight:700;cursor:pointer;border-right:1px solid #AACCFF;'>−</button>";
-      html+="<input id='inp-do-"+k+"' type='number' inputmode='numeric' min='0' placeholder='0' style='flex:1;border:none;outline:none;font-family:Fraunces,serif;font-size:20px;font-weight:900;text-align:center;background:white;color:#0A0A0B;min-width:0;' onfocus='this.select();' onkeydown=\"if(event.key==='Enter')agregarConteo('"+k+"','do');\">";
-      html+="<button onclick=\"cntUp('inp-do-"+k+"')\" style='width:34px;height:38px;background:#EFF5FF;border:none;font-size:18px;font-weight:700;cursor:pointer;border-left:1px solid #AACCFF;'>+</button>";
-      html+="</div>";
-      html+="<div style='display:flex;gap:6px;'>";
-      html+="<button class='btn btn-blue btn-sm' style='flex:1;font-size:12px;padding:6px 4px;' onclick=\"agregarConteo('"+k+"','do')\">+ Agregar</button>";
-      if(dv>0) html+="<button class='btn btn-muted btn-sm' style='font-size:11px;padding:6px 8px;' onclick=\"resetConteo('"+k+"','do')\">↺</button>";
-      html+="</div>";
+      html+="<div style='font-size:10px;color:#0057FF;font-weight:800;text-transform:uppercase;margin-bottom:5px;'>📤 Drop Off</div>";
+      html+="<div id='total-do-"+k+"' style='font-family:Fraunces,serif;font-size:32px;font-weight:900;color:"+(dv>0?"#0057FF":"#CCC")+";margin-bottom:7px;'>"+dv+"</div>";
+      html+="<div style='display:flex;border:2px solid #0057FF;border-radius:7px;overflow:hidden;background:white;margin-bottom:7px;'><button onclick="cntDown('inp-do-"+k+"')" style='width:32px;height:36px;background:#EFF5FF;border:none;font-size:16px;cursor:pointer;'>−</button><input id='inp-do-"+k+"' type='number' inputmode='numeric' min='0' placeholder='0' style='flex:1;border:none;outline:none;font-family:Fraunces,serif;font-size:18px;font-weight:900;text-align:center;background:white;min-width:0;' onfocus='this.select();' onkeydown="if(event.key==='Enter')agregarConteo('"+k+"','do');"><button onclick="cntUp('inp-do-"+k+"')" style='width:32px;height:36px;background:#EFF5FF;border:none;font-size:16px;cursor:pointer;'>+</button></div>";
+      html+="<button class='btn btn-blue btn-sm' style='width:100%;font-size:12px;padding:5px;' onclick="agregarConteo('"+k+"','do')">+ Agregar</button>";
+      if(dv>0) html+="<button class='btn btn-muted btn-sm' style='width:100%;font-size:11px;padding:4px;margin-top:4px;' onclick="resetConteo('"+k+"','do')">↺ Reset</button>";
       html+="</div>";
     }
-    // PICK UP
     html+="<div style='flex:1;background:#EFFFCE;border:2px solid #22C55E;border-radius:10px;padding:10px 8px;'>";
-    html+="<div style='font-size:10px;color:#16A34A;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;'>📥 Pick Up</div>";
-    html+="<div id='total-pu-"+k+"' style='font-family:Fraunces,serif;font-size:34px;font-weight:900;line-height:1;color:"+(pv>0?"#22C55E":"#CCC")+";font-variant-numeric:tabular-nums;margin-bottom:8px;'>"+pv+"</div>";
-    html+="<div style='display:flex;border:2px solid #22C55E;border-radius:8px;overflow:hidden;background:white;margin-bottom:8px;'>";
-    html+="<button onclick=\"cntDown('inp-pu-"+k+"')\" style='width:34px;height:38px;background:#EFFFCE;border:none;font-size:18px;font-weight:700;cursor:pointer;border-right:1px solid #86EFAC;'>−</button>";
-    html+="<input id='inp-pu-"+k+"' type='number' inputmode='numeric' min='0' placeholder='0' style='flex:1;border:none;outline:none;font-family:Fraunces,serif;font-size:20px;font-weight:900;text-align:center;background:white;color:#0A0A0B;min-width:0;' onfocus='this.select();' onkeydown=\"if(event.key==='Enter')agregarConteo('"+k+"','pu');\">";
-    html+="<button onclick=\"cntUp('inp-pu-"+k+"')\" style='width:34px;height:38px;background:#EFFFCE;border:none;font-size:18px;font-weight:700;cursor:pointer;border-left:1px solid #86EFAC;'>+</button>";
-    html+="</div>";
-    html+="<div style='display:flex;gap:6px;'>";
-    html+="<button class='btn btn-green btn-sm' style='flex:1;font-size:12px;padding:6px 4px;' onclick=\"agregarConteo('"+k+"','pu')\">+ Agregar</button>";
-    if(pv>0) html+="<button class='btn btn-muted btn-sm' style='font-size:11px;padding:6px 8px;' onclick=\"resetConteo('"+k+"','pu')\">↺</button>";
+    html+="<div style='font-size:10px;color:#16A34A;font-weight:800;text-transform:uppercase;margin-bottom:5px;'>📥 Pick Up</div>";
+    html+="<div id='total-pu-"+k+"' style='font-family:Fraunces,serif;font-size:32px;font-weight:900;color:"+(pv>0?"#22C55E":"#CCC")+";margin-bottom:7px;'>"+pv+"</div>";
+    html+="<div style='display:flex;border:2px solid #22C55E;border-radius:7px;overflow:hidden;background:white;margin-bottom:7px;'><button onclick="cntDown('inp-pu-"+k+"')" style='width:32px;height:36px;background:#EFFFCE;border:none;font-size:16px;cursor:pointer;'>−</button><input id='inp-pu-"+k+"' type='number' inputmode='numeric' min='0' placeholder='0' style='flex:1;border:none;outline:none;font-family:Fraunces,serif;font-size:18px;font-weight:900;text-align:center;background:white;min-width:0;' onfocus='this.select();' onkeydown="if(event.key==='Enter')agregarConteo('"+k+"','pu');"><button onclick="cntUp('inp-pu-"+k+"')" style='width:32px;height:36px;background:#EFFFCE;border:none;font-size:16px;cursor:pointer;'>+</button></div>";
+    html+="<button class='btn btn-green btn-sm' style='width:100%;font-size:12px;padding:5px;' onclick="agregarConteo('"+k+"','pu')">+ Agregar</button>";
+    if(pv>0) html+="<button class='btn btn-muted btn-sm' style='width:100%;font-size:11px;padding:4px;margin-top:4px;' onclick="resetConteo('"+k+"','pu')">↺ Reset</button>";
     html+="</div>";
     html+="</div>";
-    html+="</div>"; // end flex row
-    if(dv+pv>0) html+="<div style='margin-top:10px;padding-top:10px;border-top:1.5px solid #EEE;display:flex;justify-content:space-between;align-items:center;'><span style='font-size:12px;color:#888;font-weight:700;'>TOTAL HOY</span><span style='font-family:Fraunces,serif;font-size:22px;font-weight:900;'>"+(dv+pv)+" paq</span></div>";
-    html+="</div>"; // end card
+    if(dv+pv>0) html+="<div style='margin-top:10px;padding-top:8px;border-top:1.5px solid #EEE;display:flex;justify-content:space-between;'><span style='font-size:12px;color:#888;font-weight:700;'>TOTAL HOY</span><span style='font-family:Fraunces,serif;font-size:20px;font-weight:900;'>"+(dv+pv)+" paq</span></div>";
+    html+="</div>";
   });
   html+="</div>";
-  // Resumen table
   html+="<div class='card'><div class='st'>Resumen — "+fmtDL(hoy)+"</div>";
   if(!conteoHoy.length){html+="<div class='empty'>Sin conteos registrados hoy.</div>";}
   else{
-    html+="<table class='tbl'><thead><tr><th>Transportista</th><th style='color:#0057FF;'>📤 Drop Off</th><th style='color:#22C55E;'>📥 Pick Up</th><th>Total</th><th>Estado</th></tr></thead><tbody>";
-    conteoHoy.forEach(function(c){
-      var d=c.do||0,p=c.pu||0;
-      html+="<tr><td>"+cb(c.carrier)+" "+CARRIERS[c.carrier].name+"</td>";
-      html+="<td style='text-align:center;'>"+(c.carrier==="pi"?"<span style='color:#CCC;'>🚫</span>":"<strong style='font-family:Fraunces,serif;font-size:18px;color:#0057FF;'>"+d+"</strong>")+"</td>";
-      html+="<td style='text-align:center;'><strong style='font-family:Fraunces,serif;font-size:18px;color:#22C55E;'>"+p+"</strong></td>";
-      html+="<td style='text-align:center;'><strong style='font-family:Fraunces,serif;font-size:20px;'>"+(d+p)+"</strong></td>";
-      html+="<td>"+(D.colectaHoy.find(function(x){return x.carrier===c.carrier;})?"<span style='color:#22C55E;font-weight:700;'>✓ Confirmada</span>":"<span style='color:#F59E0B;font-weight:700;'>⏳ Esperando</span>")+"</td></tr>";
-    });
-    var tDO=sum(conteoHoy,function(c){return c.do||0;}),tPU=sum(conteoHoy,function(c){return c.pu||0;});
-    html+="<tr style='background:#F8F8F6;border-top:2px solid #0A0A0B;'><td><strong>TOTAL</strong></td><td style='text-align:center;'><strong style='font-family:Fraunces,serif;font-size:20px;color:#0057FF;'>"+tDO+"</strong></td><td style='text-align:center;'><strong style='font-family:Fraunces,serif;font-size:20px;color:#22C55E;'>"+tPU+"</strong></td><td style='text-align:center;'><strong style='font-family:Fraunces,serif;font-size:22px;'>"+(tDO+tPU)+"</strong></td><td></td></tr>";
-    html+="</tbody></table>";
+    html+="<table class='tbl'><thead><tr><th>Transportista</th><th style='color:#0057FF;text-align:center;'>📤 DO</th><th style='color:#22C55E;text-align:center;'>📥 PU</th><th style='text-align:center;'>Total</th><th>Estado</th></tr></thead><tbody>";
+    conteoHoy.forEach(function(c){var d=+(c.do||0),p=+(c.pu||0);html+="<tr><td>"+cb(c.carrier)+" "+CARRIERS[c.carrier].name+"</td><td style='text-align:center;'>"+(c.carrier==="pi"?"🚫":"<strong style='font-family:Fraunces,serif;font-size:18px;color:#0057FF;'>"+d+"</strong>")+"</td><td style='text-align:center;'><strong style='font-family:Fraunces,serif;font-size:18px;color:#22C55E;'>"+p+"</strong></td><td style='text-align:center;'><strong style='font-family:Fraunces,serif;font-size:20px;'>"+(d+p)+"</strong></td><td>"+(D.colectaHoy.find(function(x){return x.carrier===c.carrier;})?"<span style='color:#22C55E;font-weight:700;'>✓ Confirmada</span>":"<span style='color:#F59E0B;font-weight:700;'>⏳ Esperando</span>")+"</td></tr>";});
+    var tDO=sum(conteoHoy,function(c){return +(c.do||0);}),tPU=sum(conteoHoy,function(c){return +(c.pu||0);});
+    html+="<tr style='background:#F8F8F6;border-top:2px solid #0A0A0B;'><td><strong>TOTAL</strong></td><td style='text-align:center;'><strong style='font-family:Fraunces,serif;font-size:20px;color:#0057FF;'>"+tDO+"</strong></td><td style='text-align:center;'><strong style='font-family:Fraunces,serif;font-size:20px;color:#22C55E;'>"+tPU+"</strong></td><td style='text-align:center;'><strong style='font-family:Fraunces,serif;font-size:22px;'>"+(tDO+tPU)+"</strong></td><td></td></tr></tbody></table>";
   }
   html+="</div>";
   document.getElementById("panel-conteo").innerHTML=html;
