@@ -293,6 +293,69 @@ function willAdjustUp(id,oId,total){const el=document.getElementById(id);el.valu
 function willAdjust(id,oId,total){const el=document.getElementById(id);el.value=Math.max(0,(parseInt(el.value)||0)-1);willSync(id,oId,total);}
 function renderAll(){const D=deriveData();document.getElementById("badge-will").classList.toggle("hidden",D.sacasPendientes.length===0);const colPend=Object.keys(CARRIERS).filter(k=>D.conteoHoy.find(c=>c.carrier===k)&&!D.colectaHoy.find(c=>c.carrier===k));document.getElementById("badge-col").textContent=colPend.length;document.getElementById("badge-col").classList.toggle("hidden",colPend.length===0);const tfAct=(state.hubOrders||[]).filter(o=>!TF_FINAL.includes(o.status));document.getElementById("badge-tf").textContent=tfAct.length||"";document.getElementById("badge-tf").classList.toggle("hidden",tfAct.length===0);renderDashboard(D);renderConteo(D);renderWill(D);renderColecta(D);renderTF();renderReporte(D);}
 function renderDashboard(D){const{hoy,conteoHoy,colectaHoy,totalConteoHoy,totalColectaHoy,sacaAbierta,willTasa}=D;const willDays=dateRange(14).map(d=>{const closed=state.sacas.filter(s=>s.date===d&&s.closedAt),totA=sum(closed,s=>s.assigned),totE=sum(closed,s=>s.delivered);return{day:fmtD(d),val:totA>0?Math.round((totE/totA)*100):null};});const withData=willDays.filter(d=>d.val!==null),avg14=withData.length>0?Math.round(sum(withData,d=>d.val)/withData.length):null;let streak=0;for(let i=willDays.length-2;i>=0;i--){if(willDays[i].val===100)streak++;else if(willDays[i].val!==null)break;}const goalColor=willTasa===null?C.muted:willTasa===100?C.limeD:willTasa>=80?C.amber:C.red;const statusBg=willTasa===100?"#E6FFB2":willTasa!==null?"#FFF3CD":"#F5F4F0";const statusBdr=willTasa===100?"#C8FF00":willTasa>=80?C.amber:willTasa!==null?C.red:"#CCC";const willMsg=willTasa===null?"Sin saca registrada hoy":willTasa===100?"🎯 META CUMPLIDA — 100% HOY":sacaAbierta?`Saca en curso — ${sacaAbierta.assigned} paquetes`:`${willTasa}% de entrega hoy`;const dailyChart=dateRange(7).map(d=>({label:fmtD(d),v:sum(state.conteos.filter(c=>c.date===d),c=>c.count),color:C.blue}));const tfToday=(state.hubOrders||[]).filter(o=>o.createdAt>=new Date().setHours(0,0,0,0));document.getElementById("panel-dashboard").innerHTML=`<div class="ctx"><span style="font-size:16px;">📊</span><div><div class="ctx-title">Dashboard general</div><div class="ctx-sub">Vista consolidada del Hub</div></div><span class="ctx-pill cp-white">Hoy · ${new Date().toLocaleDateString("es-CL",{weekday:"short",day:"numeric",month:"short"})}</span></div><div class="will-wrap"><div class="will-top"><span style="font-size:26px;">🚲</span><div><div class="will-name">Will — Repartidor</div><div class="will-sub">Long John · Polígono Las Condes · Meta: 100%</div></div><div class="will-pct" style="color:${goalColor};">${willTasa!==null?willTasa+"%":"—"}</div></div><div class="will-body"><div class="will-msg" style="background:${statusBg};border-color:${statusBdr};color:${goalColor};">${willMsg}</div><div class="will-kpis">${(()=>{const hc=state.sacas.filter(s=>s.date===hoy&&s.closedAt),totA=sum(hc,s=>s.assigned)||(sacaAbierta?.assigned||0),totE=sum(hc,s=>s.delivered),totF=sum(hc,s=>s.failed);return[["Asignados",totA||"—",C.ink],["Entregados",totE||"—",C.green],["Fallidos",totF||"—",C.red],["Racha 100%",streak>0?streak+"d":"—",C.blue],["Prom 14d",avg14!==null?avg14+"%":"—",C.muted]].map(([l,v,c])=>`<div class="wk"><div class="wkv" style="color:${c};">${v}</div><div class="wkl">${l}</div></div>`).join("");})()}</div><div class="sl">Tendencia 14 días</div><div class="trend-wrap">${trendSVG(willDays,v=>v===100?C.lime:v>=80?C.amber:C.red)}</div><div style="display:flex;justify-content:space-between;margin-top:4px;font-size:11px;color:#888;font-weight:600;"><span>${willDays[0]?.day}</span><span>${willDays[willDays.length-1]?.day}</span></div></div></div><div class="st">Resumen del Hub — hoy</div><div class="kpi-row"><div class="kpi"><div class="kn" style="color:${C.blue};">${totalConteoHoy}</div><div class="kl">Paquetes contados</div><div class="ks">listos para colecta</div></div><div class="kpi"><div class="kn" style="color:${C.green};">${totalColectaHoy}</div><div class="kl">Salieron en colecta</div><div class="ks">confirmados hoy</div></div><div class="kpi"><div class="kn" style="color:${C.amber};">${Math.max(0,totalConteoHoy-totalColectaHoy)}</div><div class="kl">Pendientes salida</div><div class="ks">en el hub aún</div></div><div class="kpi"><div class="kn" style="color:${C.pink};">${tfToday.length}</div><div class="kl">Turbo &amp; Flex hoy</div><div class="ks">órdenes propias</div></div></div><div class="st">Por transportista — hoy</div><div class="carrier-grid">${Object.entries(CARRIERS).map(([k,c])=>{const conteo=conteoHoy?.find?.(x=>x.carrier===k),colecta=colectaHoy?.find?.(x=>x.carrier===k),cnt=conteo?.count||0,col=colecta?.count||0;return`<div class="ccard"><div class="ccard-name">${cb(k)}${c.name}</div><div class="ccard-nums"><div class="cn"><div class="cn-val" style="color:${C.blue};">${cnt}</div><div class="cn-lbl">Contados</div></div><div class="cn"><div class="cn-val" style="color:${C.green};">${col}</div><div class="cn-lbl">Salieron</div></div><div class="cn"><div class="cn-val" style="color:${cnt-col>0?C.amber:C.muted};">${Math.max(0,cnt-col)}</div><div class="cn-lbl">Pendientes</div></div></div></div>`;}).join("")}</div><div class="card"><div class="st">Volumen últimos 7 días</div>${barChartHTML(dailyChart)}</div>`;}
+function renderConteo(D){
+  var hoy=D.hoy,conteoHoy=D.conteoHoy,keys=Object.keys(CARRIERS);
+  var h="<div class=\"ctx\"><span style=\"font-size:16px;\">📦</span><div><div class=\"ctx-title\">Conteo diario — Drop Off &amp; Pick Up</div><div class=\"ctx-sub\">Registra por separado los paquetes de cada tipo</div></div><span class=\"ctx-pill cp-blue\">Hoy · "+fmtDL(hoy)+"</span></div>";
+  h+="<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px;\">";
+  keys.forEach(function(k){
+    var c=CARRIERS[k],rec=conteoHoy.find(function(x){return x.carrier===k;})||{do:0,pu:0};
+    var dv=+(rec.do||0),pv=+(rec.pu||0),pi=k==="pi";
+    h+="<div class=\"card\" style=\"padding:12px 10px;min-width:0;overflow:hidden;\">";
+    h+="<div style=\"display:flex;align-items:center;gap:8px;margin-bottom:10px;\">"+cb(k)+"<span style=\"font-size:14px;font-weight:800;\">"+c.name+"</span>"+(pi?"<span style=\"margin-left:auto;background:#E0FFF8;color:#00796B;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:800;\">Solo PU</span>":"")+"</div>";
+    h+="<div style=\"display:flex;gap:6px;\">";
+    if(!pi){
+      h+="<div style=\"flex:1;background:#EFF5FF;border:2px solid #0057FF;border-radius:10px;padding:8px 6px;min-width:0;overflow:hidden;\">";
+      h+="<div style=\"font-size:10px;color:#0057FF;font-weight:800;text-transform:uppercase;margin-bottom:4px;\">📤 Drop Off</div>";
+      h+="<div id=\"tddo"+k+"\" style=\"font-family:Fraunces,serif;font-size:26px;font-weight:900;color:"+(dv>0?"#0057FF":"#CCC")+";margin-bottom:6px;\">"+dv+"</div>";
+      h+="<div style=\"display:flex;border:2px solid #0057FF;border-radius:7px;overflow:hidden;background:white;margin-bottom:6px;\">";
+      h+="<button data-a=\"dn\" data-k=\""+k+"\" data-t=\"do\" style=\"width:28px;height:34px;background:#EFF5FF;border:none;font-size:14px;cursor:pointer;\">&#8722;</button>";
+      h+="<input id=\"ido"+k+"\" type=\"number\" inputmode=\"numeric\" min=\"0\" placeholder=\"0\" data-k=\""+k+"\" data-t=\"do\" style=\"flex:1;border:none;outline:none;font-family:Fraunces,serif;font-size:15px;font-weight:900;text-align:center;background:white;min-width:0;\">";
+      h+="<button data-a=\"up\" data-k=\""+k+"\" data-t=\"do\" style=\"width:28px;height:34px;background:#EFF5FF;border:none;font-size:14px;cursor:pointer;\">+</button>";
+      h+="</div>";
+      h+="<button data-a=\"ag\" data-k=\""+k+"\" data-t=\"do\" class=\"btn btn-blue btn-sm\" style=\"width:100%;font-size:12px;padding:5px;\">+ Agregar</button>";
+      if(dv>0) h+="<button data-a=\"rs\" data-k=\""+k+"\" data-t=\"do\" class=\"btn btn-muted btn-sm\" style=\"width:100%;font-size:11px;padding:4px;margin-top:4px;\">&#8634;</button>";
+      h+="</div>";
+    }
+    h+="<div style=\"flex:1;background:#EFFFCE;border:2px solid #22C55E;border-radius:10px;padding:8px 6px;min-width:0;overflow:hidden;\">";
+    h+="<div style=\"font-size:10px;color:#16A34A;font-weight:800;text-transform:uppercase;margin-bottom:4px;\">📥 Pick Up</div>";
+    h+="<div id=\"tdpu"+k+"\" style=\"font-family:Fraunces,serif;font-size:26px;font-weight:900;color:"+(pv>0?"#22C55E":"#CCC")+";margin-bottom:6px;\">"+pv+"</div>";
+    h+="<div style=\"display:flex;border:2px solid #22C55E;border-radius:7px;overflow:hidden;background:white;margin-bottom:6px;\">";
+    h+="<button data-a=\"dn\" data-k=\""+k+"\" data-t=\"pu\" style=\"width:28px;height:34px;background:#EFFFCE;border:none;font-size:14px;cursor:pointer;\">&#8722;</button>";
+    h+="<input id=\"ipu"+k+"\" type=\"number\" inputmode=\"numeric\" min=\"0\" placeholder=\"0\" data-k=\""+k+"\" data-t=\"pu\" style=\"flex:1;border:none;outline:none;font-family:Fraunces,serif;font-size:15px;font-weight:900;text-align:center;background:white;min-width:0;\">";
+    h+="<button data-a=\"up\" data-k=\""+k+"\" data-t=\"pu\" style=\"width:28px;height:34px;background:#EFFFCE;border:none;font-size:14px;cursor:pointer;\">+</button>";
+    h+="</div>";
+    h+="<button data-a=\"ag\" data-k=\""+k+"\" data-t=\"pu\" class=\"btn btn-green btn-sm\" style=\"width:100%;font-size:12px;padding:5px;\">+ Agregar</button>";
+    if(pv>0) h+="<button data-a=\"rs\" data-k=\""+k+"\" data-t=\"pu\" class=\"btn btn-muted btn-sm\" style=\"width:100%;font-size:11px;padding:4px;margin-top:4px;\">&#8634;</button>";
+    h+="</div></div>";
+    if(dv+pv>0) h+="<div style=\"margin-top:8px;padding-top:6px;border-top:1.5px solid #EEE;display:flex;justify-content:space-between;\"><span style=\"font-size:12px;color:#888;font-weight:700;\">TOTAL HOY</span><span style=\"font-family:Fraunces,serif;font-size:18px;font-weight:900;\">"+(dv+pv)+" paq</span></div>";
+    h+="</div>";
+  });
+  h+="</div>";
+  h+="<div class=\"card\"><div class=\"st\">Resumen — "+fmtDL(hoy)+"</div>";
+  if(!conteoHoy.length){h+="<div class=\"empty\">Sin conteos registrados hoy.</div>";}
+  else{
+    h+="<table class=\"tbl\"><thead><tr><th>Transportista</th><th style=\"color:#0057FF;text-align:center;\">📤 DO</th><th style=\"color:#22C55E;text-align:center;\">📥 PU</th><th style=\"text-align:center;\">Total</th><th>Estado</th></tr></thead><tbody>";
+    conteoHoy.forEach(function(c){var d=+(c.do||0),p=+(c.pu||0);h+="<tr><td>"+cb(c.carrier)+" "+CARRIERS[c.carrier].name+"</td><td style=\"text-align:center;\">"+(c.carrier==="pi"?"🚫":"<strong style=\"font-family:Fraunces,serif;font-size:18px;color:#0057FF;\">"+d+"</strong>")+"</td><td style=\"text-align:center;\"><strong style=\"font-family:Fraunces,serif;font-size:18px;color:#22C55E;\">"+p+"</strong></td><td style=\"text-align:center;\"><strong style=\"font-family:Fraunces,serif;font-size:20px;\">"+(d+p)+"</strong></td><td>"+(D.colectaHoy.find(function(x){return x.carrier===c.carrier;})?"<span style=\"color:#22C55E;font-weight:700;\">✓ Confirmada</span>":"<span style=\"color:#F59E0B;font-weight:700;\">⏳ Esperando</span>")+"</td></tr>";});
+    var tD=sum(conteoHoy,function(c){return+(c.do||0);}),tP=sum(conteoHoy,function(c){return+(c.pu||0);});
+    h+="<tr style=\"background:#F8F8F6;border-top:2px solid #0A0A0B;\"><td><strong>TOTAL</strong></td><td style=\"text-align:center;\"><strong style=\"font-family:Fraunces,serif;font-size:20px;color:#0057FF;\">"+tD+"</strong></td><td style=\"text-align:center;\"><strong style=\"font-family:Fraunces,serif;font-size:20px;color:#22C55E;\">"+tP+"</strong></td><td style=\"text-align:center;\"><strong style=\"font-family:Fraunces,serif;font-size:22px;\">"+(tD+tP)+"</strong></td><td></td></tr></tbody></table>";
+  }
+  h+="</div>";
+  document.getElementById("panel-conteo").innerHTML=h;
+  document.querySelectorAll("#panel-conteo [data-a]").forEach(function(el){
+    el.addEventListener("click",function(){
+      var a=this.dataset.a,k=this.dataset.k,t=this.dataset.t;
+      var inp=document.getElementById((t==="do"?"ido":"ipu")+k);
+      if(a==="dn"&&inp) inp.value=Math.max(0,(parseInt(inp.value)||0)-1);
+      else if(a==="up"&&inp) inp.value=(parseInt(inp.value)||0)+1;
+      else if(a==="ag") agregarConteo(k,t);
+      else if(a==="rs") resetConteo(k,t);
+    });
+  });
+  document.querySelectorAll("#panel-conteo input[data-t]").forEach(function(inp){
+    inp.addEventListener("keydown",function(e){if(e.key==="Enter")agregarConteo(this.dataset.k,this.dataset.t);});
+    inp.addEventListener("focus",function(){this.select();});
+  });
+}
 function cType(c){return c.dropoff!==undefined?"dropoff":c.pickup!==undefined?"pickup":"dropoff";}
 function agregarConteo(carrier,tipo){
   var elId=(tipo==="do"?"ido":"ipu")+carrier;
