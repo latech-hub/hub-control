@@ -2,406 +2,678 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Will — La Tech Hub</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>Will · Hub Control</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-html,body{background:#F5F4F0;font-family:'Outfit',sans-serif;min-height:100vh;color:#0A0A0B;}
-button,input,select,textarea{font-family:inherit;}
+html,body{background:#F8F8F6;color:#0A0A0B;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;font-size:16px;}
+button,input,select,textarea{font-family:inherit;font-size:16px;}
 .hidden{display:none!important;}
 
 /* HEADER */
-.hdr{background:#0A0A0B;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;}
-.hdr-logo{font-family:'Fraunces',serif;font-size:20px;font-weight:900;color:white;letter-spacing:-0.02em;}
+.hdr{background:#0A0A0B;color:#F8F8F6;padding:14px 18px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;}
+.hdr-logo{font-weight:900;font-size:18px;letter-spacing:-0.02em;}
 .hdr-logo span{color:#C8FF00;}
-.hdr-conn{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;background:#1a1a1a;color:#888;}
-.hdr-conn.ok{background:#1a3a00;color:#C8FF00;}
-.hdr-conn.err{background:#3a0000;color:#FF4444;}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.conn{font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;}
+.conn-ok{background:#C8FF00;color:#1a3a00;}
+.conn-err{background:#E63946;color:#fff;}
+.conn-wait{background:#888;color:#fff;}
 
 /* MAIN */
-.main{padding:16px;}
+.main{padding:16px;max-width:480px;margin:0 auto;}
 
 /* CARDS */
-.card{background:white;border:2px solid #0A0A0B;border-radius:16px;padding:20px;margin-bottom:14px;box-shadow:3px 3px 0 #0A0A0B;}
+.card{background:white;border:2px solid #0A0A0B;border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:3px 3px 0 #0A0A0B;}
 .card-lime{background:#EFFFCE;border-color:#0A0A0B;}
-.card-amber{background:#FFF8E1;border-color:#F59E0B;}
+.card-red{background:#FFF0F0;border-color:#E63946;}
+.card-blue{background:#EFF5FF;border-color:#0057FF;}
 
-/* ESTADO VACÍO */
-.empty-state{text-align:center;padding:48px 20px;}
-.empty-ico{font-size:64px;margin-bottom:16px;}
-.empty-title{font-family:'Fraunces',serif;font-size:26px;font-weight:900;margin-bottom:8px;}
-.empty-sub{font-size:15px;color:#666;line-height:1.6;}
+/* TYPOGRAPHY */
+.title{font-size:20px;font-weight:900;margin-bottom:8px;}
+.sub{font-size:14px;color:#666;margin-bottom:16px;}
+.label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#888;margin-bottom:6px;}
+.big-num{font-size:56px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums;}
 
-/* EN RUTA */
-.ruta-header{background:#C8FF00;border:2px solid #0A0A0B;border-radius:14px;padding:20px;margin-bottom:14px;box-shadow:3px 3px 0 #0A0A0B;}
-.ruta-title{font-family:'Fraunces',serif;font-size:28px;font-weight:900;color:#1a3a00;margin-bottom:4px;}
-.ruta-sub{font-size:14px;color:#3a5200;font-weight:600;}
-.ruta-kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
-.kpi{background:white;border:2px solid #0A0A0B;border-radius:12px;padding:14px;text-align:center;box-shadow:2px 2px 0 #0A0A0B;}
-.kpi-val{font-family:'Fraunces',serif;font-size:40px;font-weight:900;line-height:1;}
-.kpi-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#666;margin-top:4px;}
-
-/* FORMULARIO CIERRE */
-.section-title{font-family:'Fraunces',serif;font-size:18px;font-weight:700;margin-bottom:12px;}
-.lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#555;margin-bottom:6px;}
-.stepper{display:flex;align-items:center;border:2.5px solid #0A0A0B;border-radius:12px;overflow:hidden;background:white;box-shadow:2px 2px 0 #0A0A0B;width:100%;}
-.step-btn{width:56px;height:56px;background:#F0EEE8;border:none;font-size:26px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;-webkit-appearance:none;}
-.step-btn:active{background:#C8FF00;}
-.step-val{flex:1;text-align:center;font-family:'Fraunces',serif;font-size:38px;font-weight:900;border:none;outline:none;background:transparent;color:#0A0A0B;min-width:0;padding:8px 0;}
-.step-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
-.km-wrap{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
-.km-inp{flex:1;border:2.5px solid #0A0A0B;border-radius:12px;padding:14px 16px;font-family:'Fraunces',serif;font-size:32px;font-weight:900;text-align:center;outline:none;background:white;box-shadow:2px 2px 0 #0A0A0B;-webkit-appearance:none;}
-.km-unit{font-size:20px;font-weight:700;color:#555;}
-.notas-inp{width:100%;border:2px solid #CCC;border-radius:10px;padding:12px 14px;font-size:15px;line-height:1.5;outline:none;resize:vertical;min-height:80px;background:white;}
-.notas-inp:focus{border-color:#0057FF;}
-
-/* FOTOS */
-.foto-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;}
-.foto-thumb{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;border:2px solid #0A0A0B;}
-.foto-thumb img{width:100%;height:100%;object-fit:cover;}
-.foto-del{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.7);border:none;color:white;border-radius:50%;width:24px;height:24px;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-appearance:none;}
-.foto-add{aspect-ratio:1;border:2.5px dashed #CCC;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:white;font-size:28px;color:#888;}
-.foto-add-lbl{font-size:11px;font-weight:700;margin-top:4px;color:#888;}
-input[type=file]{display:none;}
-
-/* BOTONES */
-.btn{border-radius:12px;padding:16px 20px;font-size:16px;font-weight:800;border:2.5px solid;cursor:pointer;transition:all .15s;width:100%;-webkit-appearance:none;}
-.btn:active{transform:translate(2px,2px);}
+/* BUTTONS */
+.btn{border-radius:12px;padding:16px 24px;font-size:16px;font-weight:700;border:2.5px solid;cursor:pointer;width:100%;margin-bottom:10px;transition:all .1s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn:active{transform:scale(.97);}
 .btn-lime{background:#C8FF00;border-color:#0A0A0B;color:#0A0A0B;box-shadow:3px 3px 0 #0A0A0B;}
-.btn-dark{background:#0A0A0B;border-color:#0A0A0B;color:white;box-shadow:3px 3px 0 #444;margin-bottom:10px;}
-.btn-muted{background:white;border-color:#CCC;color:#555;font-size:14px;padding:12px;}
-.btn-red{background:#E63946;border-color:#C0000A;color:white;box-shadow:3px 3px 0 #C0000A;}
-.btn-export{background:#8B5CF6;border-color:#7C3AED;color:white;box-shadow:3px 3px 0 #6D28D9;font-size:14px;padding:12px;}
+.btn-dark{background:#0A0A0B;border-color:#0A0A0B;color:#F8F8F6;box-shadow:3px 3px 0 #444;}
+.btn-red{background:#E63946;border-color:#C0000A;color:#fff;box-shadow:3px 3px 0 #C0000A;}
+.btn-green{background:#22C55E;border-color:#16A34A;color:#fff;box-shadow:3px 3px 0 #15803D;}
+.btn-muted{background:white;border-color:#CCC;color:#555;}
+.btn-blue{background:#0057FF;border-color:#003DB8;color:#fff;box-shadow:3px 3px 0 #003DB8;}
+.btn-sm{padding:10px 16px;font-size:14px;border-radius:9px;width:auto;margin-bottom:0;}
 
-/* TOTAL CHECK */
-.total-check{text-align:center;font-size:14px;font-weight:700;color:#555;margin-bottom:16px;padding:10px;background:#F5F4F0;border-radius:8px;}
-.total-check.ok{background:#EFFFCE;color:#1a3a00;}
-.total-check.err{background:#FEE2E2;color:#C0000A;}
+/* STEPPER */
+.stepper{display:flex;align-items:center;border:2.5px solid #0A0A0B;border-radius:12px;overflow:hidden;background:white;box-shadow:2px 2px 0 #0A0A0B;}
+.step-btn{width:60px;height:60px;background:#F0EEE8;border:none;font-size:28px;font-weight:700;cursor:pointer;flex-shrink:0;}
+.step-btn:active{background:#C8FF00;}
+.step-val{flex:1;text-align:center;font-size:40px;font-weight:900;color:#0A0A0B;border:none;outline:none;background:transparent;font-variant-numeric:tabular-nums;}
 
-/* ÉXITO */
-.success-wrap{text-align:center;padding:32px 16px;}
-.success-ico{font-size:72px;margin-bottom:16px;}
-.success-title{font-family:'Fraunces',serif;font-size:28px;font-weight:900;margin-bottom:8px;color:#1a3a00;}
-.success-sub{font-size:15px;color:#555;margin-bottom:24px;line-height:1.6;}
-.success-stats{background:#EFFFCE;border:2px solid #0A0A0B;border-radius:14px;padding:16px;margin-bottom:20px;text-align:left;}
-.stat-row{display:flex;justify-content:space-between;font-size:15px;margin-bottom:6px;}
-.stat-val{font-weight:800;}
+/* PROGRESS */
+.prog{height:14px;background:#EEE;border-radius:7px;overflow:hidden;border:1.5px solid #DDD;margin:10px 0;}
+.prog-fill{height:100%;border-radius:7px;transition:width .4s ease;}
+
+/* TIMER */
+.timer-display{font-size:48px;font-weight:900;font-variant-numeric:tabular-nums;text-align:center;letter-spacing:.05em;color:#0057FF;}
+
+/* GPS MAP placeholder */
+.map-wrap{background:#E8F4FD;border:2px solid #0057FF;border-radius:12px;height:200px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;margin-bottom:12px;}
+.map-ico{font-size:40px;}
+
+/* STATS ROW */
+.stats{display:flex;gap:10px;margin-bottom:16px;}
+.stat{flex:1;background:white;border:2px solid #EEE;border-radius:12px;padding:12px 10px;text-align:center;}
+.stat-val{font-size:26px;font-weight:900;font-variant-numeric:tabular-nums;}
+.stat-lbl{font-size:10px;color:#888;font-weight:700;text-transform:uppercase;margin-top:3px;}
+
+/* SCANNER */
+.scan-area{background:#0A0A0B;border-radius:12px;padding:16px;margin-bottom:12px;}
+.scan-input{background:white;border:3px solid #C8FF00;border-radius:10px;padding:14px 16px;font-size:20px;font-weight:700;width:100%;outline:none;color:#0A0A0B;}
+.pkg-list{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
+.pkg-item{background:white;border:2px solid #DDD;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:10px;}
+.pkg-status{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.pkg-ok{background:#22C55E;}
+.pkg-fail{background:#E63946;}
+.pkg-code{font-size:14px;font-weight:700;flex:1;}
+.pkg-toggle{background:none;border:2px solid #DDD;border-radius:8px;padding:6px 12px;font-size:13px;font-weight:700;cursor:pointer;}
+.pkg-ok-btn{border-color:#22C55E;color:#22C55E;}
+.pkg-fail-btn{border-color:#E63946;color:#E63946;}
+
+/* ROUTE */
+.route-point{display:flex;gap:12px;align-items:flex-start;margin-bottom:8px;}
+.route-dot{width:12px;height:12px;border-radius:50%;background:#0057FF;margin-top:4px;flex-shrink:0;}
+.route-line{width:2px;background:#DDD;margin-left:5px;height:20px;}
 
 /* TOAST */
-#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:#0A0A0B;color:white;border-radius:10px;padding:13px 20px;font-size:14px;font-weight:700;z-index:999;opacity:0;transition:all .25s;pointer-events:none;border-left:4px solid #C8FF00;white-space:nowrap;}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);background:#0A0A0B;color:white;border-radius:12px;padding:14px 22px;font-size:15px;font-weight:700;z-index:999;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;border-left:4px solid #C8FF00;max-width:90vw;}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
-/* EVIDENCIA MODAL */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;overflow-y:auto;padding:16px;}
-.modal{background:white;border-radius:16px;padding:24px;max-width:480px;margin:0 auto;}
-.modal-title{font-family:'Fraunces',serif;font-size:22px;font-weight:900;margin-bottom:16px;}
-.ev-foto-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0;}
-.ev-foto{border-radius:10px;overflow:hidden;border:1.5px solid #DDD;}
-.ev-foto img{width:100%;display:block;}
+/* SCREEN tabs */
+.screen{display:none;}
+.screen.active{display:block;}
+.nav{display:flex;background:white;border-top:2px solid #EEE;position:fixed;bottom:0;left:0;right:0;z-index:50;}
+.nav-btn{flex:1;padding:12px 4px 16px;border:none;background:none;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#888;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.nav-btn.active{color:#0057FF;}
+.nav-icon{font-size:22px;}
+.content{padding-bottom:80px;}
 
-/* PRINT */
-@media print{
-  .hdr,.btn,.modal-bg{display:none!important;}
-  body{background:white;}
-  .card{box-shadow:none!important;border:1px solid #CCC!important;}
-}
+/* Battery */
+.battery{display:flex;align-items:center;gap:10px;background:#EFFFCE;border:2px solid #22C55E;border-radius:12px;padding:14px 16px;margin-bottom:12px;}
+.battery-bar{flex:1;height:20px;background:#EEE;border-radius:10px;overflow:hidden;border:2px solid #DDD;}
+.battery-fill{height:100%;border-radius:8px;transition:width .3s;}
+
+/* History */
+.hist-item{background:white;border:2px solid #EEE;border-radius:12px;padding:14px 16px;margin-bottom:10px;}
+.hist-date{font-size:12px;color:#888;font-weight:700;margin-bottom:6px;}
+.hist-stats{display:flex;gap:12px;flex-wrap:wrap;}
+.hist-stat{font-size:13px;font-weight:700;}
 </style>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
 <div class="hdr">
   <div class="hdr-logo">WILL · <span>HUB</span></div>
-  <div id="conn-status" class="hdr-conn">● ...</div>
+  <div class="hdr-right">
+    <div id="timer-mini" class="hidden" style="font-size:13px;font-weight:700;color:#C8FF00;font-variant-numeric:tabular-nums;">00:00</div>
+    <div id="conn" class="conn conn-wait">● ...</div>
+  </div>
 </div>
 
-<div class="main" id="app">
-  <div id="screen-wait" class="hidden">
-    <div class="empty-state">
-      <div class="empty-ico">🚲</div>
-      <div class="empty-title">Sin saca hoy</div>
-      <div class="empty-sub">El mesón aún no ha abierto una saca para hoy.<br>Espera y recarga cuando estés listo para salir.</div>
-      <button class="btn btn-muted" style="margin-top:24px;width:auto;padding:12px 28px;" onclick="location.reload()">🔄 Recargar</button>
-    </div>
+<div class="content">
+  <!-- SCREEN: SACA -->
+  <div class="screen active" id="screen-saca">
+    <div class="main" id="saca-content"></div>
   </div>
 
-  <div id="screen-ruta" class="hidden">
-    <div class="ruta-header">
-      <div class="ruta-title">🚲 En ruta</div>
-      <div class="ruta-sub" id="ruta-sub">Saca abierta</div>
-    </div>
-    <div class="ruta-kpis">
-      <div class="kpi"><div class="kpi-val" id="ruta-pkgs">—</div><div class="kpi-lbl">📦 Paquetes</div></div>
-      <div class="kpi"><div class="kpi-val" id="ruta-hora">—</div><div class="kpi-lbl">🕐 Salida</div></div>
-    </div>
-    <div class="card card-lime">
-      <div style="font-size:15px;font-weight:700;color:#1a3a00;margin-bottom:14px;">¿Ya terminaste la ruta?</div>
-      <button class="btn btn-dark" onclick="iniciarCierre()">📋 Registrar resultado</button>
-    </div>
-  </div>
-
-  <div id="screen-cierre" class="hidden">
-    <div class="card">
-      <div class="section-title">Resultado de la ruta</div>
-      <div class="step-grid">
-        <div>
-          <div class="lbl">✓ Entregados</div>
-          <div class="stepper">
-            <button class="step-btn" onclick="stepAdj('c-ent','c-fail')">−</button>
-            <input class="step-val" id="c-ent" type="number" inputmode="numeric" min="0" value="0" onfocus="this.select()" oninput="syncSteps('c-ent','c-fail')">
-            <button class="step-btn" onclick="stepAdjUp('c-ent','c-fail')">+</button>
+  <!-- SCREEN: RUTA (GPS) -->
+  <div class="screen" id="screen-ruta">
+    <div class="main">
+      <div class="card">
+        <div class="label">📍 Ruta GPS</div>
+        <div class="title" id="ruta-status">Sin ruta activa</div>
+        <div class="map-wrap" id="map-wrap">
+          <div class="map-ico">🗺️</div>
+          <div style="font-size:14px;color:#666;font-weight:600;">GPS inactivo</div>
+        </div>
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-val" id="km-val">0.0</div>
+            <div class="stat-lbl">km recorridos</div>
+          </div>
+          <div class="stat">
+            <div class="stat-val" id="puntos-val">0</div>
+            <div class="stat-lbl">puntos GPS</div>
+          </div>
+          <div class="stat">
+            <div class="stat-val" id="vel-val">—</div>
+            <div class="stat-lbl">km/h actual</div>
           </div>
         </div>
-        <div>
-          <div class="lbl">✗ No entregados</div>
-          <div class="stepper">
-            <button class="step-btn" onclick="stepAdj('c-fail','c-ent')">−</button>
-            <input class="step-val" id="c-fail" type="number" inputmode="numeric" min="0" value="0" onfocus="this.select()" oninput="syncSteps('c-fail','c-ent')">
-            <button class="step-btn" onclick="stepAdjUp('c-fail','c-ent')">+</button>
+        <button class="btn btn-lime" id="btn-gps" onclick="toggleGPS()">📍 Iniciar tracking GPS</button>
+        <button class="btn btn-muted btn-sm" style="width:100%;margin-top:6px;" onclick="resetRoute()">Resetear ruta</button>
+      </div>
+
+      <div class="card" id="battery-card">
+        <div class="label">🔋 Bicicleta eléctrica</div>
+        <div class="battery" style="margin-bottom:16px;">
+          <span style="font-size:20px;">🔋</span>
+          <div class="battery-bar">
+            <div class="battery-fill" id="bat-fill" style="width:100%;background:#22C55E;"></div>
           </div>
+          <span id="bat-pct" style="font-size:16px;font-weight:900;min-width:44px;">100%</span>
         </div>
+        <div class="label">Batería al SALIR</div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+          <input type="range" id="bat-inicio" min="0" max="100" value="100" style="flex:1;" oninput="updateBattery()">
+          <span id="bat-inicio-val" style="font-size:18px;font-weight:900;min-width:44px;">100%</span>
+        </div>
+        <div class="label">Batería al LLEGAR</div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <input type="range" id="bat-fin" min="0" max="100" value="100" style="flex:1;" oninput="updateBattery()">
+          <span id="bat-fin-val" style="font-size:18px;font-weight:900;min-width:44px;">100%</span>
+        </div>
+        <div id="bat-consumo" style="margin-top:12px;font-size:14px;color:#666;font-weight:600;"></div>
       </div>
-      <div id="total-check" class="total-check">— paquetes asignados</div>
     </div>
-
-    <div class="card">
-      <div class="lbl" style="margin-bottom:8px;">🗺️ Kilómetros recorridos</div>
-      <div class="km-wrap">
-        <input class="km-inp" id="c-km" type="number" inputmode="decimal" min="0" step="0.1" placeholder="0" onfocus="this.select()">
-        <span class="km-unit">km</span>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="lbl" style="margin-bottom:8px;">📝 Notas de la ruta</div>
-      <textarea class="notas-inp" id="c-notas" placeholder="Ej: Dirección X no atendió, portón cerrado. Paquete dejado en conserjería..."></textarea>
-    </div>
-
-    <div class="card">
-      <div class="lbl" style="margin-bottom:8px;">📷 Fotos de evidencia <span style="font-weight:400;color:#888;">(máx. 3)</span></div>
-      <div class="foto-grid" id="foto-grid"></div>
-      <input type="file" id="foto-input" accept="image/*" capture="environment" onchange="agregarFoto(this)">
-    </div>
-
-    <button class="btn btn-lime" onclick="cerrarSaca()" style="margin-bottom:10px;">✅ Cerrar saca</button>
-    <button class="btn btn-muted" onclick="cancelarCierre()">Cancelar</button>
   </div>
 
-  <div id="screen-success" class="hidden">
-    <div class="success-wrap">
-      <div class="success-ico">🎉</div>
-      <div class="success-title">¡Saca cerrada!</div>
-      <div class="success-sub" id="success-sub">Resultado guardado.</div>
-      <div class="success-stats" id="success-stats"></div>
-      <button class="btn btn-export" onclick="verEvidencia()" style="margin-bottom:10px;">📤 Ver evidencia</button>
-      <button class="btn btn-muted" onclick="location.reload()">🔄 Nueva jornada</button>
+  <!-- SCREEN: HISTORIAL -->
+  <div class="screen" id="screen-hist">
+    <div class="main">
+      <div class="card">
+        <div class="title">📅 Historial</div>
+        <div class="sub">Sacas de los últimos 14 días</div>
+        <div id="hist-content"><div style="text-align:center;color:#888;padding:24px;">Cargando...</div></div>
+      </div>
     </div>
   </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="nav">
+  <button class="nav-btn active" id="nav-saca" onclick="showScreen('saca')">
+    <span class="nav-icon">🚲</span>Saca
+  </button>
+  <button class="nav-btn" id="nav-ruta" onclick="showScreen('ruta')">
+    <span class="nav-icon">📍</span>Ruta
+  </button>
+  <button class="nav-btn" id="nav-hist" onclick="showScreen('hist')">
+    <span class="nav-icon">📋</span>Historial
+  </button>
 </div>
 
 <div id="toast"></div>
 
-<div class="modal-bg hidden" id="ev-modal">
-  <div class="modal">
-    <div class="modal-title">📋 Evidencia de ruta</div>
-    <div id="ev-content"></div>
-    <button class="btn btn-dark" onclick="window.print()" style="margin-bottom:10px;">🖨️ Imprimir / PDF</button>
-    <button class="btn btn-muted" onclick="document.getElementById('ev-modal').classList.add('hidden')">Cerrar</button>
-  </div>
-</div>
-
 <script>
-const FB_CONFIG={apiKey:"AIzaSyCnMwEmYvdnPksMLfY_pfPQN75OmV-FFVg",authDomain:"latech-hub.firebaseapp.com",projectId:"latech-hub",storageBucket:"latech-hub.firebasestorage.app",messagingSenderId:"964698742567",appId:"1:964698742567:web:bfa013b9108f9f212c9302"};
-firebase.initializeApp(FB_CONFIG);
-const db=firebase.firestore();
-const FB_DOC=()=>db.collection("hub").doc("state_v4");
+// ── FIREBASE ──────────────────────────────────────────────────
+const FB_CFG = {
+  apiKey:"AIzaSyCnMwEmYvdnPksMLfY_pfPQN75OmV-FFVg",
+  authDomain:"latech-hub.firebaseapp.com",
+  projectId:"latech-hub",
+  storageBucket:"latech-hub.firebasestorage.app",
+  messagingSenderId:"964698742567",
+  appId:"1:964698742567:web:b2c3d4e5f6a7b8c9d0e1f2"
+};
+firebase.initializeApp(FB_CFG);
+const db = firebase.firestore();
+const DOC = db.collection("hub").doc("state_v4");
 
-const todayStr=()=>new Date().toLocaleDateString("en-CA",{timeZone:"America/Santiago"});
-const fmtHora=ts=>new Date(ts).toLocaleTimeString("es-CL",{hour:"2-digit",minute:"2-digit"});
-const fmtFecha=d=>new Date(d+'T12:00:00').toLocaleDateString("es-CL",{weekday:"long",day:"numeric",month:"long"});
+// ── STATE ─────────────────────────────────────────────────────
+let state = {conteos:[],colectas:[],sacas:[],hubClients:[],hubOrders:[],hubPayments:{}};
+let gpsActive = false, gpsWatcher = null, routePoints = [], totalKm = 0;
+let timerInterval = null, timerStart = null, timerElapsed = 0;
+let currentSacaId = null;
 
-let state={conteos:[],colectas:[],sacas:[],hubClients:[],hubOrders:[],hubPayments:{}};
-let sacaActual=null;
-let fotos=[];
-let sacaCerrada=null;
+const todayStr = () => {
+  const d = new Date();
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+};
+const fmtD = d => {
+  const [y,m,day] = d.split("-");
+  return new Date(+y,+m-1,+day).toLocaleDateString("es-CL",{weekday:"short",day:"numeric",month:"short"});
+};
+const fmtTime = s => {
+  const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), ss=s%60;
+  return (h>0?String(h).padStart(2,"0")+":":"")+String(m).padStart(2,"0")+":"+String(ss).padStart(2,"0");
+};
+const genId = () => "id_"+Date.now()+"_"+Math.random().toString(36).slice(2,5);
 
+// ── TOAST ─────────────────────────────────────────────────────
 let toastTimer;
-function toast(msg,color="#C8FF00"){const t=document.getElementById("toast");t.textContent=msg;t.style.borderLeftColor=color;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),3000);}
-
-function setConn(ok){const el=document.getElementById("conn-status");if(ok){el.textContent="● Conectado";el.className="hdr-conn ok";}else{el.textContent="● Sin conexión";el.className="hdr-conn err";}}
-
-function show(id){["screen-wait","screen-ruta","screen-cierre","screen-success"].forEach(s=>document.getElementById(s).classList.add("hidden"));document.getElementById(id).classList.remove("hidden");}
-
-function renderEstado(){
-  const hoy=todayStr();
-  const saca=state.sacas.find(s=>s.date===hoy&&!s.closedAt);
-  sacaActual=saca||null;
-
-  if(!saca){
-    show("screen-wait");
-    return;
-  }
-  // Saca abierta
-  document.getElementById("ruta-pkgs").textContent=saca.assigned;
-  document.getElementById("ruta-hora").textContent=saca.ts?fmtHora(saca.ts):"—";
-  document.getElementById("ruta-sub").textContent=`${fmtFecha(hoy)} · ${saca.assigned} paquetes`;
-  show("screen-ruta");
+function toast(msg, color="#C8FF00") {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.style.borderLeftColor = color;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 3000);
 }
 
-// ── CIERRE ──────────────────────────────────────────────────────────────────
-function iniciarCierre(){
-  if(!sacaActual)return;
-  document.getElementById("c-ent").value=sacaActual.assigned;
-  document.getElementById("c-fail").value="0";
-  document.getElementById("c-km").value="";
-  document.getElementById("c-notas").value="";
-  fotos=[];
-  renderFotos();
-  actualizarCheck();
-  show("screen-cierre");
+// ── NAVIGATION ────────────────────────────────────────────────
+function showScreen(name) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+  document.getElementById("screen-"+name).classList.add("active");
+  document.getElementById("nav-"+name).classList.add("active");
+  if(name === "hist") renderHist();
 }
 
-function cancelarCierre(){show("screen-ruta");}
-
-function stepAdj(idA,idB){const max=sacaActual?.assigned||999;const a=Math.max(0,parseInt(document.getElementById(idA).value||0)-1);const b=Math.max(0,max-a);document.getElementById(idA).value=a;document.getElementById(idB).value=b;actualizarCheck();}
-function stepAdjUp(idA,idB){const max=sacaActual?.assigned||999;const a=Math.min(max,parseInt(document.getElementById(idA).value||0)+1);const b=Math.max(0,max-a);document.getElementById(idA).value=a;document.getElementById(idB).value=b;actualizarCheck();}
-function syncSteps(idA,idB){const max=sacaActual?.assigned||999;const a=Math.max(0,parseInt(document.getElementById(idA).value||0));const b=Math.max(0,max-a);document.getElementById(idB).value=b;actualizarCheck();}
-
-function actualizarCheck(){
-  const max=sacaActual?.assigned||0;
-  const e=parseInt(document.getElementById("c-ent").value||0);
-  const f=parseInt(document.getElementById("c-fail").value||0);
-  const total=e+f;
-  const el=document.getElementById("total-check");
-  el.textContent=`${total} de ${max} paquetes registrados`;
-  el.className="total-check"+(total===max?" ok":total>max?" err":"");
+// ── FIREBASE SYNC ─────────────────────────────────────────────
+function setConn(ok) {
+  const el = document.getElementById("conn");
+  el.textContent = ok ? "● Firebase" : "● Offline";
+  el.className = "conn " + (ok ? "conn-ok" : "conn-err");
 }
 
-// ── FOTOS ──────────────────────────────────────────────────────────────────
-function renderFotos(){
-  const grid=document.getElementById("foto-grid");
-  let html=fotos.map((f,i)=>`<div class="foto-thumb"><img src="${f}"><button class="foto-del" onclick="quitarFoto(${i})">✕</button></div>`).join("");
-  if(fotos.length<3){html+=`<div class="foto-add" onclick="document.getElementById('foto-input').click()"><span>📷</span><span class="foto-add-lbl">Agregar</span></div>`;}
-  grid.innerHTML=html;
-}
-
-function agregarFoto(input){
-  const file=input.files[0];
-  if(!file)return;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    // Comprimir
-    const img=new Image();
-    img.onload=()=>{
-      const canvas=document.createElement("canvas");
-      const MAX=800;
-      let w=img.width,h=img.height;
-      if(w>h&&w>MAX){h=Math.round(h*MAX/w);w=MAX;}
-      else if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}
-      canvas.width=w;canvas.height=h;
-      canvas.getContext("2d").drawImage(img,0,0,w,h);
-      const compressed=canvas.toDataURL("image/jpeg",0.65);
-      fotos.push(compressed);
-      renderFotos();
-      toast("📷 Foto agregada",  "#22C55E");
-    };
-    img.src=e.target.result;
-  };
-  reader.readAsDataURL(file);
-  input.value="";
-}
-
-function quitarFoto(i){fotos.splice(i,1);renderFotos();}
-
-// ── GUARDAR ────────────────────────────────────────────────────────────────
-async function cerrarSaca(){
-  if(!sacaActual){toast("Sin saca activa","#E63946");return;}
-  const e=parseInt(document.getElementById("c-ent").value||0);
-  const f=parseInt(document.getElementById("c-fail").value||0);
-  const km=Math.round((parseFloat(document.getElementById("c-km").value)||0)*10)/10;
-  const notas=document.getElementById("c-notas").value.trim();
-  const btn=document.querySelector("#screen-cierre .btn-lime");
-  btn.disabled=true;btn.textContent="Guardando...";
-
-  try{
-    state.sacas=state.sacas.map(s=>s.id!==sacaActual.id?s:{
-      ...s,delivered:e,failed:f,
-      km:km||undefined,
-      notas:notas||undefined,
-      fotos:fotos.length?[...fotos]:undefined,
-      closedAt:new Date().toISOString()
-    });
-    await FB_DOC().set({json:JSON.stringify(state),updatedAt:new Date().toISOString()});
-    sacaCerrada=state.sacas.find(s=>s.id===sacaActual.id);
-    mostrarExito();
-    toast("✅ Saca cerrada","#22C55E");
-  }catch(err){
-    toast("❌ Error al guardar. Intenta de nuevo.","#E63946");
-    btn.disabled=false;btn.textContent="✅ Cerrar saca";
-  }
-}
-
-function mostrarExito(){
-  if(!sacaCerrada)return;
-  const s=sacaCerrada;
-  const pct=s.assigned>0?Math.round((s.delivered/s.assigned)*100):0;
-  document.getElementById("success-sub").textContent=`${fmtFecha(s.date)}`;
-  document.getElementById("success-stats").innerHTML=`
-    <div class="stat-row"><span>📦 Asignados</span><span class="stat-val">${s.assigned}</span></div>
-    <div class="stat-row"><span>✅ Entregados</span><span class="stat-val" style="color:#22C55E;">${s.delivered}</span></div>
-    <div class="stat-row"><span>❌ No entregados</span><span class="stat-val" style="color:#E63946;">${s.failed}</span></div>
-    <div class="stat-row"><span>📊 Tasa</span><span class="stat-val" style="color:${pct===100?"#1a3a00":"#D97706"};">${pct}%</span></div>
-    ${s.km?`<div class="stat-row"><span>🗺️ Kilómetros</span><span class="stat-val">${s.km} km</span></div>`:""}
-    ${s.notas?`<div style="margin-top:8px;font-size:13px;color:#555;border-top:1px solid #DDD;padding-top:8px;">${s.notas}</div>`:""}
-  `;
-  show("screen-success");
-}
-
-function verEvidencia(){
-  if(!sacaCerrada)return;
-  const s=sacaCerrada;
-  const pct=s.assigned>0?Math.round((s.delivered/s.assigned)*100):0;
-  const fotosHTML=(s.fotos&&s.fotos.length)?`<div class="ev-foto-grid">${s.fotos.map(f=>`<div class="ev-foto"><img src="${f}"></div>`).join("")}</div>`:"";
-  document.getElementById("ev-content").innerHTML=`
-    <div style="font-size:13px;color:#555;margin-bottom:12px;font-weight:700;">La Tech Hub · Will — Evidencia de ruta</div>
-    <div style="font-size:15px;font-weight:800;margin-bottom:12px;">${fmtFecha(s.date)}</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
-      <div style="background:#F5F4F0;border-radius:8px;padding:10px;text-align:center;"><div style="font-family:'Fraunces',serif;font-size:28px;font-weight:900;">${s.assigned}</div><div style="font-size:11px;color:#666;font-weight:700;">ASIGNADOS</div></div>
-      <div style="background:#EFFFCE;border-radius:8px;padding:10px;text-align:center;"><div style="font-family:'Fraunces',serif;font-size:28px;font-weight:900;color:#1a3a00;">${pct}%</div><div style="font-size:11px;color:#3a5200;font-weight:700;">TASA</div></div>
-      <div style="background:#F5F4F0;border-radius:8px;padding:10px;text-align:center;"><div style="font-family:'Fraunces',serif;font-size:28px;font-weight:900;color:#22C55E;">${s.delivered}</div><div style="font-size:11px;color:#666;font-weight:700;">ENTREGADOS</div></div>
-      <div style="background:#FEE2E2;border-radius:8px;padding:10px;text-align:center;"><div style="font-family:'Fraunces',serif;font-size:28px;font-weight:900;color:#E63946;">${s.failed}</div><div style="font-size:11px;color:#666;font-weight:700;">NO ENTREGADOS</div></div>
-    </div>
-    ${s.km?`<div style="background:#F5F4F0;border-radius:8px;padding:10px;margin-bottom:12px;"><span style="font-weight:700;">🗺️ Kilómetros:</span> ${s.km} km</div>`:""}
-    ${s.notas?`<div style="background:#FFF8E1;border:1px solid #F59E0B;border-radius:8px;padding:12px;margin-bottom:12px;"><div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#92400E;margin-bottom:4px;">Notas</div><div style="font-size:14px;line-height:1.6;">${s.notas}</div></div>`:""}
-    ${fotosHTML}
-    <div style="font-size:11px;color:#AAA;margin-top:12px;text-align:center;">Generado ${new Date().toLocaleString("es-CL")} · hub.latechhub.cl</div>
-  `;
-  document.getElementById("ev-modal").classList.remove("hidden");
-}
-
-// ── FIREBASE LISTENER ──────────────────────────────────────────────────────
-FB_DOC().onSnapshot(snap=>{
-  if(snap.exists){
-    const data=snap.data();
-    if(data&&data.json){
-      try{
-        const parsed=JSON.parse(data.json);
-        state=parsed;
-        state.sacas=state.sacas||[];
-      }catch(e){}
+DOC.onSnapshot(snap => {
+  if(snap.exists) {
+    const remote = snap.data();
+    const localOrds = (state.hubOrders||[]).length;
+    const remoteOrds = (remote.hubOrders||[]).length;
+    if(remoteOrds >= localOrds) {
+      state = remote;
+      state.sacas = state.sacas||[];
     }
     setConn(true);
-  }else{
-    setConn(true);
+    renderSaca();
+    renderHist();
   }
-  // Solo re-renderizar si no estamos en cierre o éxito
-  const screens=["screen-cierre","screen-success"];
-  const active=screens.find(s=>!document.getElementById(s).classList.contains("hidden"));
-  if(!active)renderEstado();
-},err=>{setConn(false);});
+}, () => setConn(false));
+
+function save() {
+  DOC.set(state).catch(() => setConn(false));
+}
+
+// ── TIMER ─────────────────────────────────────────────────────
+function startTimer() {
+  timerStart = Date.now() - timerElapsed * 1000;
+  timerInterval = setInterval(() => {
+    timerElapsed = Math.floor((Date.now() - timerStart) / 1000);
+    const mini = document.getElementById("timer-mini");
+    if(mini) { mini.textContent = fmtTime(timerElapsed); mini.classList.remove("hidden"); }
+    const disp = document.getElementById("timer-disp");
+    if(disp) disp.textContent = fmtTime(timerElapsed);
+  }, 1000);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  timerInterval = null;
+}
+
+function resetTimer() {
+  stopTimer();
+  timerElapsed = 0;
+  timerStart = null;
+  const mini = document.getElementById("timer-mini");
+  if(mini) mini.classList.add("hidden");
+}
+
+// ── GPS ───────────────────────────────────────────────────────
+function haversineKm(lat1,lon1,lat2,lon2) {
+  const R=6371, dLat=(lat2-lat1)*Math.PI/180, dLon=(lon2-lon1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function toggleGPS() {
+  if(gpsActive) stopGPS(); else startGPS();
+}
+
+function startGPS() {
+  if(!navigator.geolocation) { toast("GPS no disponible","#E63946"); return; }
+  gpsActive = true;
+  document.getElementById("btn-gps").textContent = "⏹ Detener tracking GPS";
+  document.getElementById("btn-gps").className = "btn btn-red";
+  document.getElementById("ruta-status").textContent = "📍 GPS activo — rastreando";
+  
+  gpsWatcher = navigator.geolocation.watchPosition(pos => {
+    const {latitude:lat, longitude:lon, speed} = pos.coords;
+    
+    // Add point if moved >10m from last
+    if(routePoints.length > 0) {
+      const last = routePoints[routePoints.length-1];
+      const dist = haversineKm(last.lat, last.lon, lat, lon);
+      if(dist < 0.01) return; // ignore <10m noise
+      totalKm += dist;
+    }
+    
+    routePoints.push({lat, lon, ts: Date.now()});
+    
+    // Update UI
+    const kmEl = document.getElementById("km-val");
+    const ptsEl = document.getElementById("puntos-val");
+    const velEl = document.getElementById("vel-val");
+    if(kmEl) kmEl.textContent = totalKm.toFixed(2);
+    if(ptsEl) ptsEl.textContent = routePoints.length;
+    if(velEl) velEl.textContent = speed ? (speed*3.6).toFixed(1) : "—";
+    
+    // Update map placeholder
+    const map = document.getElementById("map-wrap");
+    if(map) map.innerHTML = `<div class="map-ico">📍</div><div style="font-size:13px;color:#0057FF;font-weight:700;">${routePoints.length} puntos · ${totalKm.toFixed(2)} km</div><div style="font-size:11px;color:#888;margin-top:4px;">${lat.toFixed(5)}, ${lon.toFixed(5)}</div>`;
+    
+  }, err => {
+    toast("Error GPS: " + err.message, "#E63946");
+    stopGPS();
+  }, {enableHighAccuracy:true, maximumAge:5000, timeout:10000});
+}
+
+function stopGPS() {
+  if(gpsWatcher !== null) navigator.geolocation.clearWatch(gpsWatcher);
+  gpsActive = false;
+  gpsWatcher = null;
+  document.getElementById("btn-gps").textContent = "📍 Iniciar tracking GPS";
+  document.getElementById("btn-gps").className = "btn btn-lime";
+  document.getElementById("ruta-status").textContent = "GPS detenido";
+  toast("GPS detenido — " + totalKm.toFixed(2) + " km registrados");
+}
+
+function resetRoute() {
+  if(!confirm("¿Resetear ruta GPS?")) return;
+  stopGPS();
+  routePoints = [];
+  totalKm = 0;
+  const kmEl = document.getElementById("km-val");
+  const ptsEl = document.getElementById("puntos-val");
+  const velEl = document.getElementById("vel-val");
+  if(kmEl) kmEl.textContent = "0.0";
+  if(ptsEl) ptsEl.textContent = "0";
+  if(velEl) velEl.textContent = "—";
+  const map = document.getElementById("map-wrap");
+  if(map) map.innerHTML = `<div class="map-ico">🗺️</div><div style="font-size:14px;color:#666;font-weight:600;">GPS inactivo</div>`;
+}
+
+// ── BATTERY ───────────────────────────────────────────────────
+function updateBattery() {
+  const inicio = parseInt(document.getElementById("bat-inicio").value);
+  const fin = parseInt(document.getElementById("bat-fin").value);
+  document.getElementById("bat-inicio-val").textContent = inicio + "%";
+  document.getElementById("bat-fin-val").textContent = fin + "%";
+  const consumo = inicio - fin;
+  const pct = fin;
+  const fill = document.getElementById("bat-fill");
+  const pctEl = document.getElementById("bat-pct");
+  if(fill) { fill.style.width = pct+"%"; fill.style.background = pct>50?"#22C55E":pct>20?"#F59E0B":"#E63946"; }
+  if(pctEl) pctEl.textContent = pct+"%";
+  const consumoEl = document.getElementById("bat-consumo");
+  if(consumoEl) consumoEl.textContent = consumo > 0 ? `Consumo de ruta: ${consumo}% de batería` : "Sin consumo registrado";
+}
+
+// ── SCANNER ───────────────────────────────────────────────────
+let sacaPkgs = {}; // {code: "entregado"|"fallido"}
+
+function initScanner() {
+  const inp = document.getElementById("scan-inp");
+  if(!inp) return;
+  inp.addEventListener("keydown", e => {
+    if(e.key === "Enter") {
+      const code = inp.value.trim();
+      if(code && !sacaPkgs[code]) {
+        sacaPkgs[code] = "pendiente";
+        inp.value = "";
+        renderPkgList();
+        toast("✓ " + code + " agregado");
+      } else if(sacaPkgs[code]) {
+        toast("⚠ Ya registrado", "#F59E0B");
+      }
+    }
+  });
+  inp.focus();
+}
+
+function togglePkg(code) {
+  if(sacaPkgs[code] === "entregado") sacaPkgs[code] = "fallido";
+  else if(sacaPkgs[code] === "fallido") sacaPkgs[code] = "entregado";
+  else sacaPkgs[code] = "entregado";
+  renderPkgList();
+}
+
+function removePkg(code) {
+  delete sacaPkgs[code];
+  renderPkgList();
+}
+
+function renderPkgList() {
+  const el = document.getElementById("pkg-list");
+  if(!el) return;
+  const codes = Object.keys(sacaPkgs);
+  const entregados = codes.filter(c => sacaPkgs[c] === "entregado").length;
+  const fallidos = codes.filter(c => sacaPkgs[c] === "fallido").length;
+  const pendientes = codes.filter(c => sacaPkgs[c] === "pendiente").length;
+  
+  const counter = document.getElementById("pkg-counter");
+  if(counter) counter.textContent = `${codes.length} paquetes · ${entregados} ✓ · ${fallidos} ✗ · ${pendientes} ⏳`;
+  
+  el.innerHTML = codes.map(code => `
+    <div class="pkg-item">
+      <div class="pkg-status ${sacaPkgs[code]==="entregado"?"pkg-ok":sacaPkgs[code]==="fallido"?"pkg-fail":""}"></div>
+      <div class="pkg-code">${code}</div>
+      <button class="pkg-toggle ${sacaPkgs[code]==="entregado"?"pkg-fail-btn":"pkg-ok-btn"}" onclick="togglePkg('${code}')">
+        ${sacaPkgs[code]==="entregado"?"✗ Fallido":"✓ OK"}
+      </button>
+      <button style="background:none;border:none;color:#E63946;font-size:18px;cursor:pointer;padding:4px;" onclick="removePkg('${code}')">✕</button>
+    </div>
+  `).join("");
+  
+  // Update progress bar
+  const total = codes.length;
+  const pbar = document.getElementById("pkg-prog");
+  if(pbar && total > 0) pbar.style.width = Math.round(((entregados+fallidos)/total)*100)+"%";
+}
+
+// ── RENDER SACA ───────────────────────────────────────────────
+function renderSaca() {
+  const el = document.getElementById("saca-content");
+  if(!el) return;
+  
+  const hoy = todayStr();
+  const sacaAbierta = (state.sacas||[]).find(s => !s.closedAt);
+  
+  if(!sacaAbierta) {
+    // Sin saca abierta
+    const pendReintento = (state.sacas||[]).filter(s => s.closedAt && s.failed > 0 && !s.toColecta && !(state.sacas||[]).find(r => r.retryOf === s.id));
+    
+    let h = `<div class="card card-lime">
+      <div class="label">Estado</div>
+      <div class="title" style="color:#2D5A00;">Sin saca activa</div>
+      <div class="sub">La saca se abre desde Hub Control en el mesón</div>
+    </div>`;
+    
+    if(pendReintento.length > 0) {
+      h += `<div class="card card-red">
+        <div class="label">⚠️ Paquetes fallidos pendientes</div>`;
+      pendReintento.forEach(s => {
+        h += `<div style="margin-bottom:12px;">
+          <div style="font-size:13px;color:#666;">Saca del ${fmtD(s.date)} — ${s.failed} fallidos</div>
+          <button class="btn btn-muted" style="margin-top:8px;" onclick="iniciarReintento('${s.id}')">🔄 Reintentar estos paquetes</button>
+        </div>`;
+      });
+      h += `</div>`;
+    }
+    
+    el.innerHTML = h;
+    resetTimer();
+    return;
+  }
+  
+  // Saca abierta
+  currentSacaId = sacaAbierta.id;
+  const assigned = sacaAbierta.assigned;
+  
+  // Start timer if not running
+  if(!timerInterval && !sacaAbierta.closedAt) {
+    timerElapsed = sacaAbierta.timerElapsed || 0;
+    startTimer();
+    // Start GPS automatically
+    if(!gpsActive) startGPS();
+  }
+  
+  const entregados = Object.values(sacaPkgs).filter(v => v === "entregado").length;
+  const fallidos = Object.values(sacaPkgs).filter(v => v === "fallido").length;
+  const registrados = Object.keys(sacaPkgs).length;
+  const pct = assigned > 0 ? Math.round((registrados/assigned)*100) : 0;
+  
+  let h = `
+  <div class="card card-lime">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+      <span style="font-size:28px;">🚲</span>
+      <div>
+        <div class="label">Saca en curso</div>
+        <div class="title" style="color:#2D5A00;">${assigned} paquetes asignados</div>
+      </div>
+    </div>
+    <div class="timer-display" id="timer-disp">${fmtTime(timerElapsed)}</div>
+    <div style="font-size:12px;color:#666;text-align:center;margin-top:4px;margin-bottom:16px;">tiempo de ruta</div>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-val" style="color:#22C55E;">${entregados}</div>
+        <div class="stat-lbl">✓ Entregados</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val" style="color:#E63946;">${fallidos}</div>
+        <div class="stat-lbl">✗ Fallidos</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val" style="color:#888;">${assigned - registrados}</div>
+        <div class="stat-lbl">⏳ Sin marcar</div>
+      </div>
+    </div>
+    <div class="prog">
+      <div class="prog-fill" id="pkg-prog" style="width:${pct}%;background:${pct===100?"#22C55E":"#0057FF"};"></div>
+    </div>
+    <div id="pkg-counter" style="font-size:13px;color:#666;text-align:center;margin-bottom:16px;">${registrados} de ${assigned} registrados</div>
+  </div>
+
+  <div class="card">
+    <div class="label">📦 Escanear / ingresar paquetes</div>
+    <div class="scan-area">
+      <input type="text" id="scan-inp" class="scan-input" placeholder="Escanear código → Enter" autocomplete="off" autocorrect="off" spellcheck="false">
+    </div>
+    <div style="font-size:13px;color:#888;margin-bottom:12px;">Escanea el código del paquete. Luego marca si fue entregado o fallido.</div>
+    <div class="pkg-list" id="pkg-list"></div>
+  </div>
+
+  <div class="card card-red">
+    <div class="label">🔴 Cerrar saca del día</div>
+    <div class="sub">Solo al terminar la ruta. Registra km y batería en la pestaña Ruta.</div>
+    <button class="btn btn-red" onclick="confirmarCierre()">Cerrar saca — ${assigned} paquetes</button>
+  </div>`;
+  
+  el.innerHTML = h;
+  initScanner();
+  renderPkgList();
+}
+
+// ── CIERRE DE SACA ────────────────────────────────────────────
+function confirmarCierre() {
+  const codes = Object.keys(sacaPkgs);
+  const entregados = codes.filter(c => sacaPkgs[c] === "entregado").length;
+  const fallidos = codes.filter(c => sacaPkgs[c] === "fallido").length;
+  const saca = (state.sacas||[]).find(s => s.id === currentSacaId);
+  if(!saca) { toast("Error: saca no encontrada","#E63946"); return; }
+  
+  const batInicio = document.getElementById("bat-inicio") ? parseInt(document.getElementById("bat-inicio").value) : null;
+  const batFin = document.getElementById("bat-fin") ? parseInt(document.getElementById("bat-fin").value) : null;
+  
+  if(!confirm(`¿Cerrar saca?\n✓ ${entregados} entregados\n✗ ${fallidos} fallidos\n⏱ ${fmtTime(timerElapsed)}\n📍 ${totalKm.toFixed(2)} km`)) return;
+  
+  stopTimer();
+  stopGPS();
+  
+  saca.delivered = entregados;
+  saca.failed = fallidos;
+  saca.closedAt = new Date().toISOString();
+  saca.timerSeconds = timerElapsed;
+  saca.kmRecorridos = parseFloat(totalKm.toFixed(2));
+  saca.rutaPuntos = routePoints.length;
+  saca.bateria = batInicio !== null ? {inicio: batInicio, fin: batFin, consumo: batInicio - batFin} : null;
+  saca.paquetes = sacaPkgs;
+  saca.statusHistory = saca.statusHistory || [];
+  saca.statusHistory.push({status:"Cerrada", ts: Date.now()});
+  
+  save();
+  toast("✅ Saca cerrada — " + entregados + " entregados, " + fallidos + " fallidos");
+  
+  // Reset local state
+  sacaPkgs = {};
+  currentSacaId = null;
+  totalKm = 0;
+  routePoints = [];
+  timerElapsed = 0;
+  
+  renderSaca();
+}
+
+function iniciarReintento(sacaId) {
+  const orig = (state.sacas||[]).find(s => s.id === sacaId);
+  if(!orig) return;
+  const nr = orig.retryCount + 1;
+  if(nr > 3) { toast("Máx 3 reintentos","#E63946"); return; }
+  state.sacas.push({
+    id: genId(), date: todayStr(), assigned: orig.failed,
+    delivered:0, failed:0, retries:[], retryOf: sacaId,
+    retryCount: nr, ts: new Date().toISOString()
+  });
+  save();
+  toast("🔄 Reintento " + nr + "/3");
+  renderSaca();
+}
+
+// ── HISTORIAL ─────────────────────────────────────────────────
+function renderHist() {
+  const el = document.getElementById("hist-content");
+  if(!el) return;
+  
+  // Group sacas by date
+  const sacas = (state.sacas||[]);
+  if(!sacas.length) {
+    el.innerHTML = `<div style="text-align:center;color:#888;padding:24px;">Sin sacas registradas</div>`;
+    return;
+  }
+  
+  // Get unique dates sorted descending
+  const dates = [...new Set(sacas.map(s => s.date))].sort().reverse().slice(0,14);
+  
+  el.innerHTML = dates.map(d => {
+    const ds = sacas.filter(s => s.date === d);
+    const closed = ds.filter(s => s.closedAt);
+    const open = ds.filter(s => !s.closedAt);
+    const totalAsig = ds.reduce((a,s) => a + (s.assigned||0), 0);
+    const totalEnt = closed.reduce((a,s) => a + (s.delivered||0), 0);
+    const totalFail = closed.reduce((a,s) => a + (s.failed||0), 0);
+    const pct = totalAsig > 0 ? Math.round((totalEnt/totalAsig)*100) : 0;
+    const totalKmD = closed.reduce((a,s) => a + (s.kmRecorridos||0), 0);
+    const totalTime = closed.reduce((a,s) => a + (s.timerSeconds||0), 0);
+    const color = open.length > 0 ? "#F59E0B" : pct === 100 ? "#22C55E" : pct >= 80 ? "#F59E0B" : "#E63946";
+    
+    return `<div class="hist-item">
+      <div class="hist-date">${fmtD(d)} ${open.length > 0 ? "🟡 En curso" : ""}</div>
+      <div class="prog" style="margin:6px 0;">
+        <div class="prog-fill" style="width:${pct}%;background:${color};"></div>
+      </div>
+      <div class="hist-stats">
+        <span class="hist-stat" style="color:#22C55E;">✓ ${totalEnt}</span>
+        <span class="hist-stat" style="color:#E63946;">✗ ${totalFail}</span>
+        <span class="hist-stat">📦 ${totalAsig}</span>
+        ${totalKmD > 0 ? `<span class="hist-stat" style="color:#0057FF;">📍 ${totalKmD.toFixed(1)}km</span>` : ""}
+        ${totalTime > 0 ? `<span class="hist-stat" style="color:#8B5CF6;">⏱ ${fmtTime(totalTime)}</span>` : ""}
+        <span class="hist-stat" style="font-size:18px;font-weight:900;color:${color};">${pct}%</span>
+      </div>
+      ${ds[0]?.bateria ? `<div style="font-size:12px;color:#888;margin-top:6px;">🔋 Batería: ${ds[0].bateria.inicio}% → ${ds[0].bateria.fin}% (consumo: ${ds[0].bateria.consumo}%)</div>` : ""}
+    </div>`;
+  }).join("");
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+updateBattery();
+setConn(false);
 </script>
 </body>
 </html>
