@@ -474,7 +474,11 @@ function renderSaca() {
   if(!el) return;
   
   const hoy = todayStr();
-  const sacaAbierta = (state.sacas||[]).find(s => !s.closedAt);
+  const hoyFmt = hoy; // YYYY-MM-DD
+  const sacaAbierta = (state.sacas||[]).find(s => {
+    const noClose = !s.closedAt || s.closedAt === null || s.closedAt === "";
+    return noClose;
+  });
   
   if(!sacaAbierta) {
     // Sin saca abierta
